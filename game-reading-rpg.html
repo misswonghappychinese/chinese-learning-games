@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📚 閱讀理解特訓大冒險 Pro</title>
+    <style>
+        :root { 
+            --primary: #5C6BC0; --primary-dark: #3F51B5;
+            --secondary: #FFCA28; --secondary-dark: #FFB300;
+            --success: #66BB6A; --danger: #EF5350;
+            --bg-color: #E8EAF6; --text: #37474F; 
+        }
+        
+        body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: var(--bg-color); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        header { background: linear-gradient(135deg, var(--primary), #7E57C2); width: 100%; padding: 20px 0; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-bottom: 5px solid var(--secondary); }
+        h1 { margin: 0; font-size: 2.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+        .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 5px; }
+
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-top: 20px; flex-wrap: wrap; padding: 0 10px;}
+        .tab-btn { background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 10px 18px; border-radius: 20px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .tab-btn:hover { background: rgba(255,255,255,0.3); }
+        .tab-btn.active { background: var(--secondary); border-color: var(--secondary); color: #333; box-shadow: 0 4px 10px rgba(255, 202, 40, 0.5); transform: scale(1.05); }
+
+        .container { width: 95%; max-width: 800px; margin: 30px auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 25px; box-sizing: border-box; position: relative;}
+        
+        .game-section { display: none; }
+        .game-section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 教師出題區 */
+        .setup-box { background: #F5F5F5; padding: 20px; border-radius: 12px; border-left: 6px solid var(--primary); margin-bottom: 25px; }
+        .setup-box h3 { color: var(--primary-dark); margin-top: 0; font-size: 1.3rem; border-bottom: 2px dashed #B0BEC5; padding-bottom: 10px;}
+        textarea { width: 100%; padding: 12px; font-size: 1.1rem; border: 2px solid #CFD8DC; border-radius: 8px; box-sizing: border-box; margin-top: 8px; font-family: inherit; line-height: 1.6; resize: vertical;}
+        textarea:focus { border-color: var(--primary); outline: none; }
+        .hint-block { background: #E3F2FD; padding: 12px; border-radius: 8px; font-size: 0.95rem; color: #1565C0; margin-bottom: 10px; border: 1px solid #90CAF9;}
+
+        /* 遊玩區共用 */
+        .play-area { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .level-indicator { background: var(--secondary); color: #333; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block;}
+        .guide-box { background: #FFF8E1; border: 2px dashed var(--secondary); border-radius: 12px; padding: 15px; margin-bottom: 20px; width: 100%; box-sizing: border-box;}
+        .guide-box h4 { margin: 0 0 5px 0; color: #F57F17; font-size: 1.1rem;}
+        .guide-box p { margin: 0; color: #5D4037; font-size: 1rem; line-height: 1.5;}
+
+        /* 按鈕 */
+        .btn { background: var(--secondary); color: #333; border: none; padding: 12px 25px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 var(--secondary-dark); transition: all 0.1s; display: inline-block; margin: 10px 5px 0;}
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--secondary-dark); }
+        .btn-blue { background: var(--primary); color: white; box-shadow: 0 4px 0 var(--primary-dark); }
+        .btn-blue:active { box-shadow: 0 0 0 var(--primary-dark); }
+        .btn-restart { background: #9E9E9E; color: white; box-shadow: 0 4px 0 #757575; font-size: 1rem; padding: 10px 20px; margin-top: 20px;}
+        
+        /* 遊戲 1：火車 */
+        .train-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin: 10px 0 20px; }
+        .train-carriage { display: flex; align-items: center; background: #E8EAF6; border: 3px solid #7986CB; border-radius: 12px; padding: 10px 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .train-controls { display: flex; flex-direction: column; gap: 5px; margin-right: 15px; }
+        .ctrl-btn { background: #9FA8DA; color: white; border: none; border-radius: 5px; width: 35px; height: 35px; font-size: 1.2rem; cursor: pointer; font-weight: bold;}
+        .ctrl-btn:disabled { background: #E0E0E0; cursor: not-allowed; }
+        .train-text { font-size: 1.2rem; line-height: 1.5; color: #283593; font-weight: bold; flex-grow: 1;}
+
+        /* 遊戲 2：偵探 */
+        .question-box { background: #E1F5FE; padding: 15px; border-radius: 10px; border-left: 6px solid #03A9F4; font-size: 1.3rem; font-weight: bold; color: #0277BD; width: 100%; box-sizing: border-box; margin-bottom: 15px; text-align: left;}
+        .detective-passage { font-size: 1.3rem; line-height: 2.2; padding: 25px; background: #FAFAFA; border-radius: 12px; border: 2px solid #E0E0E0; text-align: left; width: 100%; box-sizing: border-box; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
+        .detective-sentence { cursor: pointer; padding: 4px; border-radius: 6px; transition: 0.2s; border: 1px solid transparent;}
+        .detective-sentence:hover { background: #FFF9C4; border-color: #FFEE58;}
+        .detective-sentence.selected { background: #FFEB3B; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-weight: bold; border-color: #FBC02D;}
+        .detective-sentence.correct { background: #C8E6C9; border-color: #4CAF50; color: #1B5E20;}
+        .detective-sentence.wrong { background: #FFCDD2; border-color: #F44336; color: #B71C1C;}
+
+        /* 遊戲 3：RPG */
+        .rpg-container { width: 100%; border: 3px solid #8D6E63; border-radius: 15px; overflow: hidden; background: #EFEBE9;}
+        .rpg-passage { padding: 20px; background: white; font-size: 1.2rem; line-height: 1.8; text-align: left; border-bottom: 3px dashed #BCAAA4; }
+        .rpg-battle { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #D7CCC8; }
+        .monster { font-size: 4rem; animation: float 2s infinite ease-in-out; text-align: center;}
+        .hp-bar-bg { width: 100px; height: 15px; background: #FFCDD2; border-radius: 8px; margin-top: 10px; border: 2px solid #D32F2F; overflow: hidden;}
+        .hp-bar-fill { width: 100%; height: 100%; background: #F44336; transition: width 0.3s; }
+        .rpg-options { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; margin-left: 20px; }
+        .rpg-opt-btn { background: white; border: 2px solid #8D6E63; padding: 12px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; text-align: left; font-weight: bold; transition: 0.2s; color: #4E342E;}
+        .rpg-opt-btn:hover { background: #FFECB3; border-color: #FF8F00; }
+        .rpg-opt-btn.wrong { background: #FFCDD2; border-color: #F44336; color: #B71C1C; animation: shake 0.3s; }
+        .rpg-opt-btn.correct { background: #C8E6C9; border-color: #4CAF50; color: #1B5E20; }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+        
+        /* Modal */
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px);}
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 350px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-icon { font-size: 4rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.6rem; color: var(--primary-dark); margin: 0 0 10px 0; }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📚 閱讀理解特訓大冒險 Pro</h1>
+        <div class="subtitle">支援多關卡闖關！老師出題更輕鬆！</div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('game1')">🚂 故事火車 (初小)</button>
+            <button class="tab-btn" onclick="switchTab('game2')">🔎 偵探找線索 (中小)</button>
+            <button class="tab-btn" onclick="switchTab('game3')">⚔️ 勇者推理塔 (高小)</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div id="game1" class="game-section active">
+            <div id="setup1" class="setup-box">
+                <h3>👨‍🏫 批量出題區：故事順序</h3>
+                <div class="hint-block">
+                    💡 <strong>格式教學：</strong>每一行代表一句話。想增加新關卡（新故事），請<strong>空一行</strong>隔開！
+                </div>
+                <textarea id="train-input" rows="10">
+今天早上，突然下起傾盆大雨。
+小明忘記帶雨傘出門。
+他只好躲在屋簷下避雨。
+幸好，媽媽及時拿著雨傘來接他。
+最後他們一起開心地回家了。
+
+春天的週末，我們一家去郊遊。
+到了公園，我們在草地上鋪好墊子。
+接著，大家開心地吃著三文治。
+吃飽後，我和弟弟一起放風箏。
+這真是愉快的一天。</textarea>
+                <button class="btn btn-blue" onclick="initTrain()">✨ 啟動火車闖關</button>
+            </div>
+
+            <div id="play1" class="play-area">
+                <div class="level-indicator" id="train-level-display">關卡 1 / 1</div>
+                <div class="guide-box">
+                    <h4>📝 任務：重組故事</h4>
+                    <p>請使用 ⬆️ 和 ⬇️ 按鈕，把句子重新排成正確的順序！</p>
+                </div>
+                <div id="train-track" class="train-container"></div>
+                <button class="btn" onclick="checkTrainOrder()">✅ 檢查順序</button>
+                <button class="btn-restart" onclick="resetSetup(1)">🔙 重新出題</button>
+            </div>
+        </div>
+
+        <div id="game2" class="game-section">
+            <div id="setup2" class="setup-box">
+                <h3>👨‍🏫 批量出題區：尋找文章線索</h3>
+                <div class="hint-block">
+                    💡 <strong>格式教學：</strong><br>
+                    第一行寫「問題：...」<br>
+                    第二行寫「文章：...」<br>
+                    🔑 <strong>重點：</strong>請在文章中，將包含答案的那句話用 <strong>【】</strong> 括起來！系統會自動批改。<br>
+                    增加新關卡，請<strong>空一行</strong>隔開。
+                </div>
+                <textarea id="detective-input" rows="12">
+問題：是甚麼動物嚇哭了妹妹？
+文章：星期天，我們去野餐。草地綠油油的。【突然，一隻小野豬跑了過來。】嚇得妹妹大哭起來。爸爸連忙把野豬趕走。
+
+問題：小明最後在哪裡找到他的手錶？
+文章：小明不見了手錶，非常著急。他找了書包，又找了抽屜，都沒有。【最後，他在床底下找到了手錶。】他開心得跳了起來，馬上戴在手上。</textarea>
+                <button class="btn btn-blue" onclick="initDetective()">✨ 啟動偵探任務</button>
+            </div>
+
+            <div id="play2" class="play-area">
+                <div class="level-indicator" id="det-level-display">關卡 1 / 1</div>
+                <div class="guide-box">
+                    <h4>📝 任務：尋找明示線索</h4>
+                    <p>大偵探！請閱讀問題，然後在下方的文章中，<strong>點擊包含答案的那一個句子</strong>！</p>
+                </div>
+                <div class="question-box" id="det-question">❓ 問題：</div>
+                <div id="det-passage" class="detective-passage"></div>
+                <button class="btn" onclick="checkDetective()">✅ 鎖定線索！</button>
+                <button class="btn-restart" onclick="resetSetup(2)">🔙 重新出題</button>
+            </div>
+        </div>
+
+        <div id="game3" class="game-section">
+            <div id="setup3" class="setup-box">
+                <h3>👨‍🏫 批量出題區：深層次推理</h3>
+                <div class="hint-block">
+                    💡 <strong>格式教學：</strong>每一行開頭加上標籤（文章、問題、正確、錯誤）。<br>
+                    每一關必須有 1 個「正確」和 3 個「錯誤」。增加新關卡請<strong>空一行</strong>。
+                </div>
+                <textarea id="rpg-input" rows="15">
+文章：看著滿江紅的數學測驗卷，志明的眼淚一直在眼眶裡打轉。他慢慢地把考卷塞進書包的最底層，拖著沉重的腳步走出校門。
+問題：根據上文，志明現在的心情是怎樣的？
+正確：感到害怕和沮喪
+錯誤：非常興奮期待
+錯誤：因為肚餓而疲倦
+錯誤：對數學充滿信心
+
+文章：天空烏雲密佈，狂風把樹枝吹得東倒西歪。螞蟻們正排著長長的隊伍，急忙往高處搬家。
+問題：這段文字暗示了接下來會發生什麼事？
+正確：即將會有一場大暴雨
+錯誤：天氣非常炎熱
+錯誤：螞蟻準備舉行舞會
+錯誤：有人正在生氣</textarea>
+                <button class="btn btn-blue" onclick="initRpg()">✨ 建立推理塔</button>
+            </div>
+
+            <div id="play3" class="play-area">
+                <div class="level-indicator" id="rpg-level-display">樓層 1 / 1</div>
+                <div class="guide-box">
+                    <h4>📝 任務：從線索中推論</h4>
+                    <p>請閱讀文章，並運用推理能力選擇正確的隱含意思，發動攻擊打敗怪物！</p>
+                </div>
+                
+                <div class="rpg-container">
+                    <div id="rpg-text" class="rpg-passage"></div>
+                    <div class="rpg-battle">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="monster" id="monster-icon">👾</div>
+                            <div class="hp-bar-bg"><div class="hp-bar-fill" id="monster-hp"></div></div>
+                        </div>
+                        <div class="rpg-options" id="rpg-opts-container"></div>
+                    </div>
+                </div>
+                <div class="question-box" style="margin-top: 15px;" id="rpg-question-display"></div>
+                <button class="btn-restart" onclick="resetSetup(3)">🔙 重新出題</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🎉</div>
+            <h2 id="modal-title" class="modal-title">標題</h2>
+            <p id="modal-text" style="font-size: 1.1rem; color: #555; margin-bottom:20px;">提示文字</p>
+            <button class="btn btn-blue" id="modal-btn" onclick="closeModal()">繼續</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= 通用功能 =================
+        let modalCallback = null;
+
+        function showModal(title, text, icon, btnText, callback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-btn').innerText = btnText || "繼續";
+            modalCallback = callback || null;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (modalCallback) modalCallback();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function resetSetup(gameNum) {
+            document.getElementById(`setup${gameNum}`).style.display = 'block';
+            document.getElementById(`play${gameNum}`).style.display = 'none';
+        }
+
+        // ================= 遊戲 1：故事火車 =================
+        let trainLevels = [];
+        let trainCurrentLevel = 0;
+        let originalTrainOrder = [];
+        let currentTrainOrder = [];
+
+        function initTrain() {
+            const raw = document.getElementById('train-input').value.trim();
+            if(!raw) return showModal("錯誤", "請輸入故事！", "⚠️", "明白");
+            
+            // 用雙換行(空行)分割關卡
+            const blocks = raw.split(/\n\s*\n/);
+            trainLevels = [];
+            
+            blocks.forEach(block => {
+                const lines = block.split('\n').map(s => s.trim()).filter(s => s);
+                if(lines.length >= 2) trainLevels.push(lines);
+            });
+
+            if(trainLevels.length === 0) return showModal("錯誤", "格式不對，請確保每段故事至少有兩句話喔！", "⚠️", "明白");
+            
+            trainCurrentLevel = 0;
+            document.getElementById('setup1').style.display = 'none';
+            document.getElementById('play1').style.display = 'flex';
+            loadTrainLevel();
+        }
+
+        function loadTrainLevel() {
+            document.getElementById('train-level-display').innerText = `關卡 ${trainCurrentLevel + 1} / ${trainLevels.length}`;
+            originalTrainOrder = [...trainLevels[trainCurrentLevel]];
+            currentTrainOrder = [...originalTrainOrder].sort(() => Math.random() - 0.5);
+            
+            if(JSON.stringify(currentTrainOrder) === JSON.stringify(originalTrainOrder)) {
+                currentTrainOrder.reverse();
+            }
+            renderTrain();
+        }
+
+        function renderTrain() {
+            const track = document.getElementById('train-track');
+            track.innerHTML = '';
+            currentTrainOrder.forEach((sentence, index) => {
+                track.innerHTML += `
+                    <div class="train-carriage">
+                        <div class="train-controls">
+                            <button class="ctrl-btn" onclick="moveTrain(${index}, -1)" ${index === 0 ? 'disabled' : ''}>⬆️</button>
+                            <button class="ctrl-btn" onclick="moveTrain(${index}, 1)" ${index === currentTrainOrder.length - 1 ? 'disabled' : ''}>⬇️</button>
+                        </div>
+                        <div class="train-text">${sentence}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function moveTrain(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < currentTrainOrder.length) {
+                [currentTrainOrder[index], currentTrainOrder[newIndex]] = [currentTrainOrder[newIndex], currentTrainOrder[index]];
+                renderTrain();
+            }
+        }
+
+        function checkTrainOrder() {
+            if (JSON.stringify(currentTrainOrder) === JSON.stringify(originalTrainOrder)) {
+                if (trainCurrentLevel < trainLevels.length - 1) {
+                    showModal("太棒了！", "火車順利到站！準備前往下一關！", "🚂", "下一關", () => {
+                        trainCurrentLevel++;
+                        loadTrainLevel();
+                    });
+                } else {
+                    showModal("任務完成！", "你成功重組了所有的故事，你是邏輯大師！", "🏆", "太棒了", () => resetSetup(1));
+                }
+            } else {
+                showModal("哎呀！", "順序好像有點不通順，請想想什麼事情先發生？", "🤔", "再試一次");
+            }
+        }
+
+        // ================= 遊戲 2：偵探找線索 =================
+        let detLevels = [];
+        let detCurrentLevel = 0;
+        let detSentences = [];
+        let detCorrectIndex = -1;
+        let selectedSentenceIndex = -1;
+
+        function initDetective() {
+            const raw = document.getElementById('detective-input').value.trim();
+            if(!raw) return showModal("錯誤", "請輸入內容！", "⚠️", "明白");
+            
+            const blocks = raw.split(/\n\s*\n/);
+            detLevels = [];
+
+            blocks.forEach(block => {
+                let qMatch = block.match(/問題[：:](.*)/);
+                let pMatch = block.match(/文章[：:](.*)/s); // s flag to match newlines if any
+                if(qMatch && pMatch) {
+                    detLevels.push({ q: qMatch[1].trim(), passage: pMatch[1].trim() });
+                }
+            });
+
+            if(detLevels.length === 0) return showModal("錯誤", "找不到符合「問題：」和「文章：」格式的內容喔！", "⚠️", "明白");
+            
+            detCurrentLevel = 0;
+            document.getElementById('setup2').style.display = 'none';
+            document.getElementById('play2').style.display = 'flex';
+            loadDetectiveLevel();
+        }
+
+        function loadDetectiveLevel() {
+            document.getElementById('det-level-display').innerText = `關卡 ${detCurrentLevel + 1} / ${detLevels.length}`;
+            const levelData = detLevels[detCurrentLevel];
+            document.getElementById('det-question').innerText = `❓ 問題：${levelData.q}`;
+            
+            let rawPassage = levelData.passage;
+            let targetText = "";
+            let match = rawPassage.match(/【(.*?)】/);
+            
+            if(match) {
+                targetText = match[1];
+                rawPassage = rawPassage.replace(/【|】/g, ''); // 移除括號
+            }
+
+            // 分句 (以句號、問號、感嘆號分隔)
+            detSentences = rawPassage.match(/[^。！？]*[。！？]?/g).filter(s => s.trim() !== "");
+            
+            detCorrectIndex = -1;
+            selectedSentenceIndex = -1;
+
+            const passageDiv = document.getElementById('det-passage');
+            passageDiv.innerHTML = '';
+
+            detSentences.forEach((sentence, index) => {
+                if (targetText && sentence.includes(targetText)) {
+                    detCorrectIndex = index;
+                }
+                const span = document.createElement('span');
+                span.className = 'detective-sentence';
+                span.innerText = sentence;
+                span.onclick = () => selectDetSentence(index);
+                span.id = `ds-${index}`;
+                passageDiv.appendChild(span);
+            });
+        }
+
+        function selectDetSentence(index) {
+            document.querySelectorAll('.detective-sentence').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`ds-${index}`).classList.add('selected');
+            selectedSentenceIndex = index;
+        }
+
+        function checkDetective() {
+            if (selectedSentenceIndex === -1) {
+                return showModal("請選擇線索", "請在文章中點擊你認為是答案的句子！", "🔎", "明白");
+            }
+
+            const selectedEl = document.getElementById(`ds-${selectedSentenceIndex}`);
+            
+            if (detCorrectIndex === -1) {
+                // 如果老師沒設答案，開放式作答
+                showModal("線索鎖定！", "請向老師解釋為什麼這句話能回答問題呢？", "🕵️‍♂️", "下一關", () => {
+                    nextDetectiveLevel();
+                });
+            } else if (selectedSentenceIndex === detCorrectIndex) {
+                // 答對了
+                selectedEl.classList.add('correct');
+                showModal("太準確了！", "你成功找到了隱藏在文章中的線索！", "🎯", "下一關", () => {
+                    nextDetectiveLevel();
+                });
+            } else {
+                // 答錯了
+                selectedEl.classList.add('wrong');
+                setTimeout(() => selectedEl.classList.remove('wrong'), 1000);
+                showModal("找錯了！", "這句話好像不能回答問題，請再仔細掃描一次文章！", "❌", "再試一次");
+            }
+        }
+
+        function nextDetectiveLevel() {
+            if (detCurrentLevel < detLevels.length - 1) {
+                detCurrentLevel++;
+                loadDetectiveLevel();
+            } else {
+                showModal("結案！", "所有的案件都被你偵破了，你是首席大偵探！", "🏆", "太棒了", () => resetSetup(2));
+            }
+        }
+
+        // ================= 遊戲 3：勇者推理塔 =================
+        let rpgLevels = [];
+        let rpgCurrentLevel = 0;
+        let rpgCorrectAnswer = "";
+
+        function initRpg() {
+            const raw = document.getElementById('rpg-input').value.trim();
+            if(!raw) return showModal("錯誤", "請輸入內容！", "⚠️", "明白");
+            
+            const blocks = raw.split(/\n\s*\n/);
+            rpgLevels = [];
+
+            blocks.forEach(block => {
+                let lvl = { wrongs: [] };
+                block.split('\n').forEach(line => {
+                    if(line.startsWith('文章')) lvl.passage = line.substring(3).trim();
+                    else if(line.startsWith('問題')) lvl.q = line.substring(3).trim();
+                    else if(line.startsWith('正確')) lvl.correct = line.substring(3).trim();
+                    else if(line.startsWith('錯誤')) lvl.wrongs.push(line.substring(3).trim());
+                });
+                
+                if(lvl.passage && lvl.q && lvl.correct && lvl.wrongs.length > 0) {
+                    rpgLevels.push(lvl);
+                }
+            });
+
+            if(rpgLevels.length === 0) return showModal("錯誤", "格式有誤！確保每關都有「文章、問題、正確、錯誤」標籤。", "⚠️", "明白");
+            
+            rpgCurrentLevel = 0;
+            document.getElementById('setup3').style.display = 'none';
+            document.getElementById('play3').style.display = 'flex';
+            loadRpgLevel();
+        }
+
+        function loadRpgLevel() {
+            document.getElementById('rpg-level-display').innerText = `樓層 ${rpgCurrentLevel + 1} / ${rpgLevels.length}`;
+            const levelData = rpgLevels[rpgCurrentLevel];
+            
+            rpgCorrectAnswer = levelData.correct;
+            document.getElementById('rpg-text').innerText = levelData.passage;
+            document.getElementById('rpg-question-display').innerText = `❓ 推理題：${levelData.q}`;
+
+            // 準備選項 (1正 + 最多3錯)
+            let options = [levelData.correct, ...levelData.wrongs.slice(0, 3)].sort(() => Math.random() - 0.5);
+            
+            const optsContainer = document.getElementById('rpg-opts-container');
+            optsContainer.innerHTML = '';
+            
+            options.forEach((opt, index) => {
+                optsContainer.innerHTML += `<button class="rpg-opt-btn" id="rpg-btn-${index}" onclick="attackMonster('${opt}', ${index})">⚔️ ${opt}</button>`;
+            });
+
+            document.getElementById('monster-hp').style.width = '100%';
+            document.getElementById('monster-icon').innerText = ['👾', '👹', '🐉', '👻', '🧛'][Math.floor(Math.random()*5)];
+        }
+
+        function attackMonster(selectedOpt, btnIndex) {
+            const btn = document.getElementById(`rpg-btn-${btnIndex}`);
+            
+            if (selectedOpt === rpgCorrectAnswer) {
+                btn.classList.add('correct');
+                document.getElementById('monster-hp').style.width = '0%';
+                
+                setTimeout(() => {
+                    document.getElementById('monster-icon').innerText = '💥';
+                    if (rpgCurrentLevel < rpgLevels.length - 1) {
+                        showModal("推理正確！", "怪物被擊敗！準備進入塔的下一層！", "⚔️", "前進", () => {
+                            rpgCurrentLevel++;
+                            loadRpgLevel();
+                        });
+                    } else {
+                        showModal("塔頂通關！", "你打敗了所有怪物，你的推理能力達到了滿級！", "👑", "凱旋歸來", () => resetSetup(3));
+                    }
+                }, 400);
+            } else {
+                btn.classList.add('wrong');
+                showModal("攻擊被格擋！", "這似乎不是最好的推論。請再仔細尋找文章中的字詞線索！", "🛡️", "再試一次");
+                setTimeout(() => btn.classList.remove('wrong'), 1000);
+            }
+        }
+    </script>
+</body>
+</html>

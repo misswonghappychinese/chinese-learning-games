@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>互動尋字遊戲生成器</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #0277bd; font-size: 1.8rem; margin-bottom: 10px; text-align: center;}
+        
+        /* 老師設定畫面 */
+        #setup-view {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .instruction { font-size: 1rem; color: #555; margin-bottom: 15px; line-height: 1.6; }
+        textarea {
+            width: 95%;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            border: 2px solid #4fc3f7;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        .btn-main {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #01579b;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto;
+        }
+        .btn-main:active { box-shadow: 0 0 #01579b; transform: translateY(4px); }
+        .error-msg { color: #d32f2f; font-weight: bold; margin-top: 10px; display: none; text-align: center;}
+
+        /* 遊戲畫面 */
+        #game-view { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
+        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; align-items: center;}
+        .btn-back { background-color: #757575; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+        
+        .game-instruction {
+            background-color: #e1f5fe;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 5px solid #03a9f4;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 尋字網格 */
+        #word-grid {
+            display: grid;
+            gap: 2px;
+            background-color: #0288d1;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            touch-action: none; /* 防止手機滑動 */
+        }
+        
+        .grid-cell {
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+        }
+
+        /* 網格狀態顏色 */
+        .grid-cell.selected-first { background-color: #ffb74d; color: #fff; transform: scale(1.1); box-shadow: 0 0 8px #ff9800; z-index: 10;}
+        .grid-cell.found { background-color: #81c784; color: #fff; }
+        .grid-cell.found-overlap { background-color: #4caf50; color: #fff; }
+
+        /* 提示區 */
+        #clues-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #clues-container h3 { margin-top: 0; color: #0277bd; border-bottom: 2px solid #b3e5fc; padding-bottom: 5px; }
+        .clue-list { list-style-type: decimal; padding-left: 20px; margin: 0; }
+        .clue-item { margin-bottom: 12px; font-size: 1.05rem; line-height: 1.4; transition: all 0.3s; }
+        .clue-item.completed { text-decoration: line-through; color: #9e9e9e; }
+        .clue-item.completed::before { content: '✅ '; text-decoration: none; display: inline-block;}
+
+    </style>
+</head>
+<body>
+
+    <div id="setup-view">
+        <h1>🔍 尋字遊戲自動生成器 🔍</h1>
+        <div class="instruction">
+            <strong>使用說明：</strong><br>
+            請在下方輸入詞語及其解釋。每行一題，<strong>詞語和解釋之間請用冒號（：）或橫線（-）隔開。</strong><br>
+            系統會自動將詞語隱藏在陣列中（橫向、直向、斜向），並將解釋作為下方的遊戲提示。
+        </div>
+        <textarea id="word-input" rows="10">
+頭腦：人類思考、記憶等能力的器官。
+交叉：兩條或以上的線條互相穿過。
+綠草如茵：形容綠草濃密柔軟，像鋪了一層地毯一樣。
+熱血沸騰：形容人的情緒非常高漲、激動。
+啟事：為了公開說明某事而發布的公告文字。
+振奮人心：使人精神振作，情緒高昂。
+優先：在待遇上佔先；比其他事物排前處理。
+底氣：基本的信心和力量；做事的憑藉。
+打道回府：原指官員回府，泛指回家或原路返回。
+動搖：不穩定，意志不堅定或信念改變。</textarea>
+        <button class="btn-main" onclick="generateGame()">✨ 一鍵生成遊戲 ✨</button>
+        <div id="error-msg" class="error-msg"></div>
+    </div>
+
+    <div id="game-view">
+        <div class="top-bar">
+            <button class="btn-back" onclick="backToSetup()">🔙 重新出題</button>
+            <h2 style="color: #0277bd; margin: 0; font-size: 1.4rem;">詞語大發現</h2>
+            <div style="width: 70px;"></div>
+        </div>
+
+        <div class="game-instruction">
+            💡 <strong>玩法：</strong> 請根據下方的解釋提示，在上方的方格中找出對應的詞語。<br>
+            👉 <strong>操作：先點擊詞語的「第一個字」，再點擊「最後一個字」即可連線！</strong>
+        </div>
+
+        <div id="word-grid"></div>
+
+        <div id="clues-container">
+            <h3>📖 提示區（尋找對應的詞語）</h3>
+            <ol id="clue-list" class="clue-list"></ol>
+        </div>
+    </div>
+
+    <script>
+        // 遊戲核心數據
+        let wordData = []; // [{word: "頭腦", clue: "...", found: false}, ...]
+        let gridSize = 12;
+        let gridLetters = [];
+        let firstClickedCell = null;
+        let wordsFoundCount = 0;
+
+        const fillerChars = "的了一是不我在有他這為之大來以個中上們到說國和地也子時道出而要於就下得可過於能如主發專業學然起作家成事看思家天心日月水火木金土山石田白黑高低大小多少上下前後左右春夏秋冬東西南北風雨雷電";
+
+        // 1. 解析輸入並生成遊戲
+        function generateGame() {
+            const inputText = document.getElementById('word-input').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!inputText) {
+                showError("請輸入詞語和解釋！");
+                return;
+            }
+
+            const lines = inputText.split('\n');
+            wordData = [];
+            let maxWordLen = 0;
+
+            lines.forEach(line => {
+                // 支援全形/半形冒號、減號、空格作為分隔符
+                const parts = line.split(/[:：\-—]/);
+                if (parts.length >= 2) {
+                    const word = parts[0].trim().replace(/[^\u4e00-\u9fa5]/g, ''); // 只保留中文字
+                    const clue = parts.slice(1).join('：').trim();
+                    if (word.length > 0 && clue.length > 0) {
+                        wordData.push({ word: word, clue: clue, found: false });
+                        if (word.length > maxWordLen) maxWordLen = word.length;
+                    }
+                }
+            });
+
+            if (wordData.length === 0) {
+                showError("無法讀取詞語。請確保格式為「詞語：解釋」。");
+                return;
+            }
+
+            // 動態決定網格大小 (至少 10x10，或最長字數+2，或根據詞語數量調整)
+            gridSize = Math.max(10, maxWordLen + 2, Math.ceil(Math.sqrt(wordData.length * 5)));
+            if (gridSize > 15) gridSize = 15; // 限制最大 15x15 避免手機螢幕裝不下
+
+            if (!placeWordsInGrid()) {
+                showError("詞語太多或太長，無法全部放入陣列。請減少詞語數量！");
+                return;
+            }
+
+            errorMsg.style.display = "none";
+            renderGame();
+            
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.textContent = msg;
+            errorMsg.style.display = "block";
+        }
+
+        // 2. 演算法：將詞語隨機放入網格
+        function placeWordsInGrid() {
+            gridLetters = Array(gridSize).fill(null).map(() => Array(gridSize).fill(''));
+            // 允許的方向：橫向向右、直向向下、斜向右下
+            const directions = [[1, 0], [0, 1], [1, 1]];
+
+            for (let i = 0; i < wordData.length; i++) {
+                let word = wordData[i].word;
+                let placed = false;
+                let attempts = 0;
+
+                while (!placed && attempts < 200) {
+                    attempts++;
+                    // 隨機起點和方向
+                    let dir = directions[Math.floor(Math.random() * directions.length)];
+                    let startX = Math.floor(Math.random() * gridSize);
+                    let startY = Math.floor(Math.random() * gridSize);
+                    
+                    let endX = startX + dir[0] * (word.length - 1);
+                    let endY = startY + dir[1] * (word.length - 1);
+
+                    // 檢查是否超出邊界
+                    if (endX < 0 || endX >= gridSize || endY < 0 || endY >= gridSize) continue;
+
+                    // 檢查是否有字母衝突
+                    let conflict = false;
+                    for (let j = 0; j < word.length; j++) {
+                        let cx = startX + dir[0] * j;
+                        let cy = startY + dir[1] * j;
+                        if (gridLetters[cy][cx] !== '' && gridLetters[cy][cx] !== word[j]) {
+                            conflict = true;
+                            break;
+                        }
+                    }
+
+                    // 如果沒有衝突，放入字詞
+                    if (!conflict) {
+                        for (let j = 0; j < word.length; j++) {
+                            let cx = startX + dir[0] * j;
+                            let cy = startY + dir[1] * j;
+                            gridLetters[cy][cx] = word[j];
+                        }
+                        // 記錄該詞語在網格中的坐標 (方便後續驗證)
+                        wordData[i].startX = startX;
+                        wordData[i].startY = startY;
+                        wordData[i].endX = endX;
+                        wordData[i].endY = endY;
+                        placed = true;
+                    }
+                }
+                if (!placed) return false; // 放不下了
+            }
+
+            // 填滿剩餘的空格
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (gridLetters[y][x] === '') {
+                        gridLetters[y][x] = fillerChars[Math.floor(Math.random() * fillerChars.length)];
+                    }
+                }
+            }
+            return true;
+        }
+
+        // 3. 渲染遊戲畫面
+        function renderGame() {
+            wordsFoundCount = 0;
+            firstClickedCell = null;
+            
+            // 繪製網格
+            const gridEl = document.getElementById('word-grid');
+            gridEl.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            gridEl.innerHTML = '';
+
+            // 根據螢幕大小計算每個格子的最佳尺寸
+            let cellSize = Math.min(40, Math.floor(320 / gridSize)); 
+
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.id = `cell-${x}-${y}`;
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.style.width = `${cellSize}px`;
+                    cell.style.height = `${cellSize}px`;
+                    if(gridSize > 12) cell.style.fontSize = "1rem";
+                    cell.textContent = gridLetters[y][x];
+                    
+                    // 點擊事件
+                    cell.addEventListener('click', () => handleCellClick(x, y));
+                    gridEl.appendChild(cell);
+                }
+            }
+
+            // 繪製提示區
+            const clueListEl = document.getElementById('clue-list');
+            clueListEl.innerHTML = '';
+            
+            // 將詞語打亂順序顯示，增加難度
+            let displayList = [...wordData].sort(() => Math.random() - 0.5);
+            
+            displayList.forEach((item) => {
+                const li = document.createElement('li');
+                li.className = 'clue-item';
+                li.id = `clue-${item.word}`;
+                // 遊戲開始時，隱藏詞語本身，只顯示解釋和空格
+                let hiddenWord = "【" + "＿".repeat(item.word.length) + "】";
+                li.innerHTML = `<span class="word-placeholder" style="color:#0288d1; font-weight:bold;">${hiddenWord}</span>：${item.clue}`;
+                clueListEl.appendChild(li);
+            });
+        }
+
+        // 4. 處理玩家點擊互動
+        function handleCellClick(x, y) {
+            const cellId = `cell-${x}-${y}`;
+            const cellEl = document.getElementById(cellId);
+
+            if (!firstClickedCell) {
+                // 第一次點擊：選中起點
+                firstClickedCell = {x: x, y: y, id: cellId};
+                cellEl.classList.add('selected-first');
+            } else {
+                // 第二次點擊：選中終點並驗證
+                const startX = firstClickedCell.x;
+                const startY = firstClickedCell.y;
+                const endX = x;
+                const endY = y;
+                
+                document.getElementById(firstClickedCell.id).classList.remove('selected-first');
+                firstClickedCell = null;
+
+                checkWordMatch(startX, startY, endX, endY);
+            }
+        }
+
+        // 5. 驗證玩家選擇的線條是否為正確詞語
+        function checkWordMatch(sx, sy, ex, ey) {
+            // 允許正反向點擊
+            let matchFound = false;
+
+            wordData.forEach(item => {
+                if (item.found) return;
+
+                if ((item.startX === sx && item.startY === sy && item.endX === ex && item.endY === ey) ||
+                    (item.startX === ex && item.startY === ey && item.endX === sx && item.endY === sy)) {
+                    
+                    // 找到了！
+                    item.found = true;
+                    matchFound = true;
+                    wordsFoundCount++;
+
+                    // 畫出綠色底色
+                    let dx = Math.sign(item.endX - item.startX);
+                    let dy = Math.sign(item.endY - item.startY);
+                    let len = item.word.length;
+
+                    for (let i = 0; i < len; i++) {
+                        let cx = item.startX + dx * i;
+                        let cy = item.startY + dy * i;
+                        let cell = document.getElementById(`cell-${cx}-${cy}`);
+                        if (cell.classList.contains('found')) {
+                            cell.classList.add('found-overlap'); // 交叉點加深顏色
+                        } else {
+                            cell.classList.add('found');
+                        }
+                    }
+
+                    // 更新提示區：顯示出原本隱藏的詞語，並加上刪除線
+                    const clueLi = document.getElementById(`clue-${item.word}`);
+                    clueLi.classList.add('completed');
+                    clueLi.innerHTML = `<span style="font-weight:bold; color:#388e3c;">【${item.word}】</span>：${item.clue}`;
+                }
+            });
+
+            if (matchFound && wordsFoundCount === wordData.length) {
+                setTimeout(() => {
+                    alert("🎉 太厲害了！你已經找出了所有的詞語，任務完成！");
+                }, 300);
+            }
+        }
+
+        function backToSetup() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

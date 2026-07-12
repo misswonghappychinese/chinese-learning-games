@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>互動詞語迷宮生成器</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #fdfbf7;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #2e7d32; font-size: 1.8rem; margin-bottom: 10px; }
+        
+        /* 設定畫面 (老師視角) */
+        #setup-view {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        .instruction { font-size: 1rem; color: #555; margin-bottom: 15px; text-align: left; }
+        textarea {
+            width: 90%;
+            padding: 10px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            border: 2px solid #81c784;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        .btn-main {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #1b5e20;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        .btn-main:active { box-shadow: 0 0 #1b5e20; transform: translateY(4px); }
+        .error-msg { color: #d32f2f; font-weight: bold; margin-top: 10px; display: none; }
+
+        /* 遊戲畫面 (學生視角) */
+        #game-view { display: none; width: 100%; max-width: 500px; align-items: center; flex-direction: column; }
+        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; align-items: center;}
+        .btn-back { background-color: #757575; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; }
+        
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            background-color: #81c784;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            touch-action: none; 
+        }
+        
+        .cell {
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .cell.path { background-color: #a5d6a7; color: #1b5e20; }
+        .cell.current { background-color: #ffb74d; color: #e65100; transform: scale(1.1); box-shadow: 0 0 5px #ffb74d; z-index: 10;}
+        .cell.error { background-color: #ef5350; color: white; animation: shake 0.3s; }
+        .cell.start { border: 2px solid #2e7d32; }
+        .cell.end { border: 2px solid #c62828; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .btn-dir { background-color: #4caf50; color: white; border: none; border-radius: 8px; font-size: 20px; cursor: pointer; box-shadow: 0 4px #388e3c; }
+        .btn-dir:active { box-shadow: 0 0 #388e3c; transform: translateY(4px); }
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        #progress-container {
+            background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 100%;
+        }
+        #progress { font-weight: bold; color: #d84315; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 老師設定畫面 -->
+    <div id="setup-view">
+        <h1>🌟 詞語迷宮自動生成器 🌟</h1>
+        <div class="instruction">
+            <strong>使用說明：</strong><br>
+            請在下方輸入你想讓學生溫習的詞語。系統會自動隨機生成一條通關路線，並填滿干擾字。<br>
+            <small style="color: #d84315;">* 提示：字數總和建議在 10 到 60 個字之間（例如 10 個四字詞語）。您可以直接貼上，系統會自動濾除標點符號。</small>
+        </div>
+        <textarea id="word-input" rows="5">綠草如茵，振奮人心，堅定不移，熱血沸騰，打道回府，交叉，啟事，底氣，動搖，清爽</textarea>
+        <button class="btn-main" onclick="startGame()">✨ 一鍵生成遊戲 ✨</button>
+        <div id="error-msg" class="error-msg"></div>
+    </div>
+
+    <!-- 學生遊玩畫面 -->
+    <div id="game-view">
+        <div class="top-bar">
+            <button class="btn-back" onclick="backToSetup()">🔙 重新出題</button>
+            <h2 style="color: #2e7d32; margin: 0; font-size: 1.3rem;">終極迷宮挑戰</h2>
+            <div style="width: 70px;"></div> <!-- 佔位符以保持置中 -->
+        </div>
+
+        <div id="game-board"></div>
+
+        <div class="controls">
+            <button class="btn-dir btn-up" onclick="movePlayer(0, -1)">▲</button>
+            <button class="btn-dir btn-left" onclick="movePlayer(-1, 0)">◀</button>
+            <button class="btn-dir btn-down" onclick="movePlayer(0, 1)">▼</button>
+            <button class="btn-dir btn-right" onclick="movePlayer(1, 0)">▶</button>
+        </div>
+
+        <div id="progress-container">
+            <div id="progress">收集進度：<br><span id="collected-text" style="color:#2e7d32;"></span></div>
+        </div>
+    </div>
+
+    <script>
+        let gridData = [];
+        let targetString = "";
+        let playerX = 0, playerY = 0;
+        let currentIndex = 0;
+        let visitedCells = [];
+        let endPos = {x: 0, y: 0};
+
+        // 常見中文字庫 (用作干擾字)
+        const fillerChars = "的了一是不我在有他這為之大來以個中上們到說國和地也子時道出而要於就下得可過於能如主發專業學然起作家成事看思家天心日月水火木金土山石田白黑高低大小多少上下前後左右春夏秋冬東西南北風雨雷電";
+
+        function cleanInput(str) {
+            // 移除所有空格和標點符號
+            return str.replace(/[^\u4e00-\u9fa5]/g, '');
+        }
+
+        function startGame() {
+            const input = document.getElementById('word-input').value;
+            targetString = cleanInput(input);
+            const errorMsg = document.getElementById('error-msg');
+
+            if (targetString.length < 5) {
+                errorMsg.textContent = "字數太少啦！請至少輸入 5 個中文字。";
+                errorMsg.style.display = "block";
+                return;
+            }
+            if (targetString.length > 70) {
+                errorMsg.textContent = "字數太多啦！為了確保迷宮暢通，請控制在 70 字以內。";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            errorMsg.style.display = "none";
+            
+            // 嘗試生成迷宮 (如果遇到死胡同就重試)
+            let success = false;
+            for(let i=0; i<50; i++) {
+                if (generateMazeAlgorithm(targetString)) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (!success) {
+                errorMsg.textContent = "路線生成失敗，請稍微減少字數再試一次！";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            // 切換畫面
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            
+            initGameBoard();
+        }
+
+        function generateMazeAlgorithm(wordStr) {
+            const size = 10;
+            gridData = Array(size).fill(0).map(() => Array(size).fill(''));
+            let path = [];
+            
+            function dfs(x, y, step) {
+                if (step === wordStr.length) {
+                    endPos = {x, y};
+                    return true;
+                }
+                
+                let dirs = [[0,1], [1,0], [0,-1], [-1,0]];
+                dirs.sort(() => Math.random() - 0.5); // 隨機方向，讓每次迷宮都不同
+                
+                for (let [dx, dy] of dirs) {
+                    let nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && nx < size && ny >= 0 && ny < size && gridData[ny][nx] === '') {
+                        gridData[ny][nx] = wordStr[step];
+                        path.push({x: nx, y: ny});
+                        if (dfs(nx, ny, step + 1)) return true;
+                        path.pop(); // 回溯
+                        gridData[ny][nx] = '';
+                    }
+                }
+                return false;
+            }
+            
+            gridData[0][0] = wordStr[0];
+            path.push({x: 0, y: 0});
+            
+            if (dfs(0, 0, 1)) {
+                // 填滿剩下的空格
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        if (gridData[y][x] === '') {
+                            // 加入干擾字，有小機率使用目標詞語中的字來增加迷惑性
+                            if (Math.random() > 0.8) {
+                                gridData[y][x] = wordStr[Math.floor(Math.random() * wordStr.length)];
+                            } else {
+                                gridData[y][x] = fillerChars[Math.floor(Math.random() * fillerChars.length)];
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function initGameBoard() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            playerX = 0;
+            playerY = 0;
+            currentIndex = 0;
+            visitedCells = [{x: 0, y: 0}];
+
+            for (let y = 0; y < 10; y++) {
+                for (let x = 0; x < 10; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${x}-${y}`;
+                    cell.textContent = gridData[y][x];
+                    
+                    if (x === 0 && y === 0) cell.classList.add('start');
+                    if (x === endPos.x && y === endPos.y) cell.classList.add('end'); 
+                    
+                    board.appendChild(cell);
+                }
+            }
+            updateVisuals();
+        }
+
+        function movePlayer(dx, dy) {
+            if (currentIndex >= targetString.length - 1) return;
+
+            const newX = playerX + dx;
+            const newY = playerY + dy;
+
+            if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
+
+            if (visitedCells.length > 1) {
+                const prevCell = visitedCells[visitedCells.length - 2];
+                if (newX === prevCell.x && newY === prevCell.y) {
+                    visitedCells.pop();
+                    playerX = newX;
+                    playerY = newY;
+                    currentIndex--;
+                    updateVisuals();
+                    return;
+                }
+            }
+
+            const nextChar = gridData[newY][newX];
+            const expectedChar = targetString[currentIndex + 1];
+
+            if (nextChar === expectedChar) {
+                playerX = newX;
+                playerY = newY;
+                currentIndex++;
+                visitedCells.push({x: playerX, y: playerY});
+                updateVisuals();
+
+                if (currentIndex === targetString.length - 1) {
+                    setTimeout(() => {
+                        alert("🎉 太棒了！你成功找出了所有詞語！");
+                    }, 100);
+                }
+            } else {
+                const wrongCell = document.getElementById(`cell-${newX}-${newY}`);
+                wrongCell.classList.add('error');
+                setTimeout(() => wrongCell.classList.remove('error'), 300);
+            }
+        }
+
+        function updateVisuals() {
+            document.querySelectorAll('.cell').forEach(c => {
+                c.classList.remove('path', 'current');
+            });
+            visitedCells.forEach(pos => {
+                document.getElementById(`cell-${pos.x}-${pos.y}`).classList.add('path');
+            });
+            document.getElementById(`cell-${playerX}-${playerY}`).classList.add('current');
+            document.getElementById('collected-text').textContent = targetString.substring(0, currentIndex + 1);
+        }
+
+        function backToSetup() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('game-view').style.display === 'flex') {
+                if (e.key === 'ArrowUp') { movePlayer(0, -1); e.preventDefault(); }
+                else if (e.key === 'ArrowDown') { movePlayer(0, 1); e.preventDefault(); }
+                else if (e.key === 'ArrowLeft') { movePlayer(-1, 0); e.preventDefault(); }
+                else if (e.key === 'ArrowRight') { movePlayer(1, 0); e.preventDefault(); }
+            }
+        });
+    </script>
+</body>
+</html>

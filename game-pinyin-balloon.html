@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎈 拼音氣球派對</title>
+    <style>
+        :root { 
+            --primary: #FF6B6B; --primary-dark: #C44536;
+            --secondary: #4ECDC4; --secondary-dark: #1A535C;
+            --accent: #FFE66D;
+            --bg-color: #F7FFF7; --text: #2D3142; 
+        }
+        
+        body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: var(--bg-color); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden;}
+        
+        header { background: linear-gradient(135deg, var(--primary), #FF8E53); width: 100%; padding: 20px 0; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-bottom: 5px solid var(--accent); }
+        h1 { margin: 0; font-size: 2.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 5px; font-weight: bold;}
+
+        .container { width: 95%; max-width: 800px; margin: 30px auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 25px; box-sizing: border-box; }
+        
+        /* 教師出題區 */
+        .setup-box { background: #F0F4F8; padding: 20px; border-radius: 12px; border-left: 6px solid var(--secondary); margin-bottom: 20px; }
+        .setup-box h3 { color: var(--secondary-dark); margin-top: 0; font-size: 1.3rem; border-bottom: 2px dashed #B0BEC5; padding-bottom: 10px;}
+        textarea { width: 100%; padding: 12px; font-size: 1.2rem; border: 2px solid #CFD8DC; border-radius: 8px; box-sizing: border-box; margin-top: 8px; font-family: inherit; line-height: 1.6; resize: vertical;}
+        textarea:focus { border-color: var(--secondary); outline: none; }
+        .hint-block { background: #E0F7FA; padding: 12px; border-radius: 8px; font-size: 1rem; color: #006064; margin-bottom: 10px; border: 1px solid #B2EBF2;}
+
+        /* 遊玩區 */
+        .play-area { display: none; flex-direction: column; align-items: center; width: 100%; }
+        .header-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; color: var(--secondary-dark);}
+        
+        .target-word-box { background: white; border: 4px dashed var(--primary); border-radius: 20px; padding: 30px; text-align: center; margin-bottom: 40px; min-width: 250px; box-shadow: 0 8px 15px rgba(255,107,107,0.2);}
+        .target-word { font-size: 4.5rem; font-weight: bold; color: var(--text); margin: 0; letter-spacing: 5px;}
+        
+        /* 氣球設計 */
+        .balloons-container { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 30px; width: 100%; }
+        .balloon { 
+            width: 110px; height: 140px; 
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            position: relative; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 1.6rem; color: #333;
+            box-shadow: inset -10px -10px 15px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s, opacity 0.3s;
+            animation: floatUpDown 3s ease-in-out infinite alternate;
+        }
+        .balloon:nth-child(1) { background: radial-gradient(circle at 30% 30%, #FF9A9E, #FECFEF); animation-delay: 0s; }
+        .balloon:nth-child(2) { background: radial-gradient(circle at 30% 30%, #A1C4FD, #C2E9FB); animation-delay: 0.5s; }
+        .balloon:nth-child(3) { background: radial-gradient(circle at 30% 30%, #D4FC79, #96E6A1); animation-delay: 1s; }
+        .balloon:nth-child(4) { background: radial-gradient(circle at 30% 30%, #FDFBFB, #EBEDEE); animation-delay: 1.5s; }
+        
+        .balloon:hover { transform: scale(1.1); }
+        .balloon:active { transform: scale(0.9); }
+        .balloon.popped { transform: scale(0); opacity: 0; pointer-events: none; }
+        .balloon.wrong-shake { animation: shake 0.4s; background: #FFCDD2; }
+
+        .balloon::after {
+            content: ''; position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 30px; background: #888; border-radius: 2px;
+        }
+        .balloon::before {
+            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+            width: 12px; height: 8px; background: inherit; border-radius: 50%;
+        }
+
+        /* 按鈕 */
+        .btn { background: var(--secondary); color: white; border: none; padding: 12px 25px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 var(--secondary-dark); transition: all 0.1s; display: inline-block; margin: 10px 5px 0;}
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--secondary-dark); }
+        .btn-restart { background: #9E9E9E; color: white; box-shadow: 0 4px 0 #757575; padding: 10px 20px; margin-top: 20px;}
+        
+        /* 動畫 */
+        @keyframes floatUpDown { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-10px); } 50% { transform: translateX(10px); } }
+        
+        /* Modal */
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px);}
+        .modal-content { background: white; padding: 40px; border-radius: 25px; text-align: center; max-width: 380px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-icon { font-size: 5rem; margin-bottom: 15px; }
+        .modal-title { font-size: 1.8rem; color: var(--primary-dark); margin: 0 0 10px 0; }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎈 拼音氣球派對</h1>
+        <div class="subtitle">看字選拼音，戳破正確的氣球！</div>
+    </header>
+
+    <div class="container">
+        <!-- ================= 教師出題區 ================= -->
+        <div id="setup" class="setup-box">
+            <h3>👨‍🏫 批量出題區</h3>
+            <div class="hint-block">
+                💡 <strong>格式教學：</strong><br>
+                每一行代表一道題目。<br>
+                格式：<strong>漢字 , 正確拼音 , 錯誤拼音1 , 錯誤拼音2</strong><br>
+                (請用半角逗號 `,` 隔開，系統會自動打亂氣球的順序)
+            </div>
+            <textarea id="game-input" rows="8">
+蘋果 , píng guǒ , pín guǒ , bīng guǒ
+朋友 , péng yǒu , pén yǒu , póng yǒu
+大象 , dà xiàng , dà qiàng , dà xàng
+老師 , lǎo shī , nǎo shī , lǎo sī
+學校 , xué xiào , xué xào , xié xiào
+知道 , zhī dào , zī dào , zhǐ dào</textarea>
+            <button class="btn" style="background: var(--primary); box-shadow: 0 4px 0 var(--primary-dark);" onclick="startGame()">✨ 開始氣球派對！</button>
+        </div>
+
+        <!-- ================= 遊玩區 ================= -->
+        <div id="play" class="play-area">
+            <div class="header-info">
+                <div id="level-display">第 1 題 / 共 5 題</div>
+                <div id="score-display">🌟 分數: 0</div>
+            </div>
+            
+            <div class="target-word-box">
+                <p style="margin:0 0 10px 0; color:#888; font-weight:bold;">請選出以下詞語的正確拼音：</p>
+                <div class="target-word" id="word-display">漢字</div>
+            </div>
+
+            <div class="balloons-container" id="balloons-area">
+                <!-- 氣球會在這裡生成 -->
+            </div>
+
+            <button class="btn btn-restart" onclick="resetGame()">🔙 重新出題</button>
+        </div>
+    </div>
+
+    <!-- 模態框 (Modal) -->
+    <div id="modal">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🎉</div>
+            <h2 id="modal-title" class="modal-title">標題</h2>
+            <p id="modal-text" style="font-size: 1.2rem; color: #555; margin-bottom:25px;">提示文字</p>
+            <button class="btn" style="background: var(--primary); box-shadow: 0 4px 0 var(--primary-dark);" id="modal-btn" onclick="closeModal()">繼續</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let modalCallback = null;
+
+        function showModal(title, text, icon, btnText, callback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-btn').innerText = btnText || "繼續";
+            modalCallback = callback || null;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (modalCallback) modalCallback();
+        }
+
+        function resetGame() {
+            document.getElementById('setup').style.display = 'block';
+            document.getElementById('play').style.display = 'none';
+        }
+
+        function startGame() {
+            const raw = document.getElementById('game-input').value.trim();
+            if (!raw) return showModal("錯誤", "請輸入題目！", "⚠️", "明白");
+            
+            const lines = raw.split('\n');
+            questions = [];
+            
+            lines.forEach(line => {
+                const parts = line.split(',').map(s => s.trim()).filter(s => s);
+                if (parts.length >= 3) {
+                    // parts[0] 是漢字，parts[1] 是正確，後面的都是錯誤選項
+                    let q = {
+                        word: parts[0],
+                        correct: parts[1],
+                        options: [parts[1], ...parts.slice(2)]
+                    };
+                    questions.push(q);
+                }
+            });
+
+            if (questions.length === 0) {
+                return showModal("格式錯誤", "請確保每行都有漢字、正確拼音及至少一個錯誤拼音，並用逗號隔開喔！", "⚠️", "明白");
+            }
+
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('play').style.display = 'flex';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            document.getElementById('level-display').innerText = `第 ${currentQuestionIndex + 1} 題 / 共 ${questions.length} 題`;
+            document.getElementById('score-display').innerText = `🌟 分數: ${score}`;
+            
+            const q = questions[currentQuestionIndex];
+            document.getElementById('word-display').innerText = q.word;
+
+            // 打亂氣球選項
+            let shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+            
+            const balloonArea = document.getElementById('balloons-area');
+            balloonArea.innerHTML = '';
+            
+            shuffledOptions.forEach((opt, index) => {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.innerText = opt;
+                balloon.onclick = () => checkAnswer(opt, balloon);
+                balloonArea.appendChild(balloon);
+            });
+        }
+
+        function checkAnswer(selectedPinyin, balloonElement) {
+            const correctPinyin = questions[currentQuestionIndex].correct;
+
+            if (selectedPinyin === correctPinyin) {
+                // 答對了
+                balloonElement.classList.add('popped');
+                score += 10;
+                document.getElementById('score-display').innerText = `🌟 分數: ${score}`;
+                
+                // 播放一個簡單的音效 (可選，這裡用視覺代替)
+                setTimeout(() => {
+                    if (currentQuestionIndex < questions.length - 1) {
+                        currentQuestionIndex++;
+                        loadQuestion();
+                    } else {
+                        showModal("派對結束！", `太厲害了！你總共獲得了 ${score} 分！`, "🏆", "再玩一次", () => resetGame());
+                    }
+                }, 500); // 等待氣球爆炸動畫結束
+            } else {
+                // 答錯了
+                balloonElement.classList.add('wrong-shake');
+                setTimeout(() => {
+                    balloonElement.classList.remove('wrong-shake');
+                }, 400);
+            }
+        }
+    </script>
+</body>
+</html>

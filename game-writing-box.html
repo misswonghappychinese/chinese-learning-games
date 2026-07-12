@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎢 小學寫作冒險樂園 Pro</title>
+    <style>
+        :root { 
+            --primary: #4A90E2; 
+            --primary-dark: #357ABD;
+            --secondary: #F39C12; 
+            --secondary-dark: #D68910;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --bg-color: #F4F7F6; 
+            --text: #2C3E50; 
+        }
+        
+        /* 筆記本網格背景 */
+        body { 
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; 
+            background-color: var(--bg-color); 
+            background-image: linear-gradient(#e0eaf5 2px, transparent 2px), linear-gradient(90deg, #e0eaf5 2px, transparent 2px);
+            background-size: 30px 30px;
+            color: var(--text); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        
+        /* 頂部樂園招牌 */
+        header { 
+            background: linear-gradient(135deg, var(--primary), #8E44AD); 
+            width: 100%; 
+            padding: 20px 0; 
+            text-align: center; 
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            border-bottom: 5px solid var(--secondary);
+        }
+        h1 { margin: 0; font-size: 2.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); letter-spacing: 2px; }
+        .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 5px; }
+
+        /* 導航按鈕 */
+        .tabs { display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; padding: 0 15px;}
+        .tab-btn { 
+            background: rgba(255,255,255,0.2); border: 2px solid white; color: white;
+            padding: 12px 20px; border-radius: 30px; font-size: 1.1rem; cursor: pointer; 
+            font-weight: bold; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .tab-btn:hover { background: rgba(255,255,255,0.4); transform: translateY(-2px); }
+        .tab-btn.active { background: var(--secondary); border-color: var(--secondary); box-shadow: 0 6px 15px rgba(243, 156, 18, 0.5); transform: scale(1.05); }
+
+        /* 主要內容區塊 */
+        .container { 
+            width: 95%; max-width: 900px; margin: 30px auto; 
+            background: #ffffff; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            padding: 30px; box-sizing: border-box; 
+            border: 3px solid #E2E8F0;
+        }
+        
+        .game-section { display: none; }
+        .game-section.active { display: block; animation: slideUp 0.6s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 教師設定區 */
+        .setup-box { 
+            background: #F8F9F9; padding: 20px; border-radius: 15px; 
+            border-left: 8px solid var(--primary); margin-bottom: 25px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+        }
+        .setup-box h3 { color: var(--primary-dark); margin-top: 0; font-size: 1.4rem; border-bottom: 2px dashed #BDC3C7; padding-bottom: 10px;}
+        textarea, input[type="text"] { 
+            width: 100%; padding: 12px; font-size: 1.1rem; 
+            border: 2px solid #BDC3C7; border-radius: 10px; box-sizing: border-box; 
+            margin-top: 8px; font-family: inherit; transition: border 0.3s;
+        }
+        textarea:focus, input[type="text"]:focus { border-color: var(--primary); outline: none; }
+
+        /* 學生指南 (Instructions) */
+        .guide-box {
+            background: #FFF9C4; border: 3px dashed var(--secondary); border-radius: 15px;
+            padding: 15px 25px; margin-bottom: 25px; text-align: left;
+            box-shadow: 3px 3px 0 rgba(243, 156, 18, 0.2);
+        }
+        .guide-box h3 { color: #D35400; margin-top: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+        .guide-box ul { padding-left: 20px; color: #5D4037; font-size: 1.1rem; line-height: 1.6; }
+        .guide-box li { margin-bottom: 8px; }
+
+        /* 通用按鈕 */
+        .btn { 
+            background: linear-gradient(to bottom, var(--secondary), var(--secondary-dark)); 
+            color: white; border: none; padding: 12px 30px; font-size: 1.2rem; 
+            border-radius: 30px; cursor: pointer; font-weight: bold; 
+            box-shadow: 0 5px 0 #A66B00; transition: all 0.1s; 
+            display: inline-block; margin: 15px 10px 0; letter-spacing: 1px;
+        }
+        .btn:active { transform: translateY(5px); box-shadow: 0 0 0 #A66B00; }
+        .btn-blue { background: linear-gradient(to bottom, var(--primary), var(--primary-dark)); box-shadow: 0 5px 0 #1A5276; }
+        .btn-blue:active { box-shadow: 0 0 0 #1A5276; }
+        .btn-restart { background: linear-gradient(to bottom, #95A5A6, #7F8C8D); box-shadow: 0 5px 0 #515A5A; margin-top: 30px; font-size: 1rem; padding: 10px 20px;}
+        .btn-restart:active { box-shadow: 0 0 0 #515A5A; }
+
+        .play-area { display: none; flex-direction: column; align-items: center; text-align: center; }
+        .play-area h2 { font-size: 2rem; color: var(--primary-dark); margin-bottom: 10px; }
+
+        /* ================= 遊戲 1：扭蛋機 ================= */
+        .gacha-container { display: flex; gap: 20px; justify-content: center; margin: 30px 0; width: 100%; flex-wrap: wrap;}
+        .gacha-col { display: flex; flex-direction: column; align-items: center; background: #E8F8F5; padding: 15px; border-radius: 20px; border: 3px solid #1ABC9C; box-shadow: 0 8px 0 #16A085;}
+        .gacha-title { font-size: 1.2rem; color: #16A085; font-weight: bold; margin-bottom: 10px; background: white; padding: 5px 15px; border-radius: 20px; }
+        .gacha-slot { 
+            background: linear-gradient(135deg, #FFFBFA, #F4F7F6); 
+            border: 4px solid #1ABC9C; border-radius: 50%; 
+            width: 140px; height: 140px; display: flex; justify-content: center; align-items: center; 
+            font-size: 1.4rem; font-weight: bold; color: var(--text); 
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.2); 
+            position: relative; overflow: hidden;
+        }
+        .gacha-slot span { position: absolute; width: 90%; text-align: center; padding: 10px; line-height: 1.3; }
+
+        /* ================= 遊戲 2：吹水大會 ================= */
+        .expand-step { 
+            background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; 
+            width: 100%; text-align: left; border-left: 8px solid #3498DB; 
+            box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .expand-step::before { content: '🎈'; position: absolute; top: 15px; right: 20px; font-size: 2rem; opacity: 0.2; }
+        .expand-target { font-size: 1.4rem; font-weight: bold; color: var(--primary-dark); margin-bottom: 10px; background: #EBF5FB; padding: 10px; border-radius: 8px;}
+        .expand-hint { color: #E67E22; font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;}
+        .expand-result { display: none; margin-top: 15px; padding: 15px; background: #E8F6F3; border-radius: 8px; color: #1E8449; font-weight: bold; font-size: 1.2rem; border: 2px dashed #2ECC71;}
+
+        /* ================= 遊戲 3：瘋狂瞎拼 ================= */
+        .madlib-input-group { 
+            display: flex; align-items: center; justify-content: space-between; 
+            margin-bottom: 15px; width: 100%; max-width: 500px; 
+            background: white; padding: 15px; border-radius: 12px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #E1BEE7;
+        }
+        .madlib-label { font-weight: bold; color: #8E24AA; font-size: 1.2rem; width: 45%; text-align: right; padding-right: 15px;}
+        .madlib-story { 
+            font-size: 1.6rem; line-height: 2; text-align: left; 
+            background: #FFF8E1; padding: 30px; border-radius: 20px; 
+            border: 4px dashed #FFCA28; margin-top: 20px; position: relative;
+        }
+        .madlib-story::after { content: '🪄'; position: absolute; bottom: 10px; right: 20px; font-size: 3rem; opacity: 0.5; }
+        .madlib-blank { color: #E74C3C; font-weight: bold; border-bottom: 3px solid #E74C3C; padding: 0 5px; background: rgba(231, 76, 60, 0.1); border-radius: 4px;}
+
+        /* ================= 遊戲 4：標點過山車 ================= */
+        .rollercoaster-bg { background: #E0F7FA; padding: 30px; border-radius: 20px; border: 4px solid #00BCD4; width: 100%; box-sizing: border-box; position: relative;}
+        .punct-sentence { font-size: 1.8rem; line-height: 2.8; text-align: left; letter-spacing: 2px; color: #006064; font-weight: bold;}
+        .punct-box { 
+            display: inline-block; width: 45px; height: 45px; border: 3px solid var(--primary); 
+            border-radius: 10px; background: white; vertical-align: bottom; 
+            text-align: center; line-height: 40px; cursor: pointer; color: #D32F2F; 
+            font-weight: bold; user-select: none; box-shadow: 0 4px 0 #2980B9; 
+            margin: 0 5px; transition: transform 0.1s; font-size: 1.5rem;
+        }
+        .punct-box:active { transform: translateY(4px); box-shadow: 0 0 0 #2980B9; }
+        .punct-correct { background: #C8E6C9; border-color: #388E3C; color: #2E7D32; box-shadow: 0 4px 0 #1B5E20;}
+        .punct-wrong { background: #FFCDD2; border-color: #D32F2F; color: #C62828; animation: shake 0.4s; box-shadow: 0 4px 0 #B71C1C;}
+        
+        /* 專屬彈出視窗 (Modal) */
+        #custom-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 20px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); max-width: 400px; width: 80%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-icon { font-size: 5rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.8rem; color: var(--primary-dark); margin: 0 0 15px 0; }
+        .modal-text { font-size: 1.2rem; color: #555; margin-bottom: 25px; line-height: 1.5; }
+        
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-8px) rotate(-5deg); } 50% { transform: translateX(8px) rotate(5deg); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎢 小學寫作冒險樂園</h1>
+        <div class="subtitle">打破寫作恐懼，邊玩邊學成大師！</div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('game1')">🎰 靈感扭蛋機</button>
+            <button class="tab-btn" onclick="switchTab('game2')">🎈 句子擴寫熱氣球</button>
+            <button class="tab-btn" onclick="switchTab('game3')">🤪 瞎拼魔法書</button>
+            <button class="tab-btn" onclick="switchTab('game4')">🚂 標點過山車</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- ================= 遊戲 1：靈感扭蛋機 ================= -->
+        <div id="game1" class="game-section active">
+            <div id="setup1" class="setup-box">
+                <h3>👨‍🏫 老師設定區：放入扭蛋材料</h3>
+                <p>請輸入詞庫（每行一個詞語），設計出各種荒謬的組合吧！</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 200px;">
+                        <strong>👤 人物 (Who)</strong>
+                        <textarea id="gacha-who" rows="4">一隻暴龍
+校長
+外星人
+超級英雄
+懶惰的熊貓</textarea>
+                    </div>
+                    <div style="flex:1; min-width: 200px;">
+                        <strong>📍 地點 (Where)</strong>
+                        <textarea id="gacha-where" rows="4">在超級市場
+在火星上
+在操場中心
+在神秘洞穴
+在巨大的馬桶裡</textarea>
+                    </div>
+                    <div style="flex:1; min-width: 200px;">
+                        <strong>🎬 事件 (What)</strong>
+                        <textarea id="gacha-what" rows="4">發現了時光機
+跳起了芭蕾舞
+忘記了做功課
+正在吃大漢堡
+變成了一朵花</textarea>
+                    </div>
+                </div>
+                <button class="btn btn-blue" onclick="startGacha()">✨ 生成專屬扭蛋機 ✨</button>
+            </div>
+
+            <div id="play1" class="play-area">
+                <h2>🎰 靈感扭蛋機</h2>
+                <div class="guide-box">
+                    <h3>📝 冒險指南：如何遊玩？</h3>
+                    <ul>
+                        <li><strong>第一步：</strong> 點擊下方的「🎲 開始抽卡」按鈕。</li>
+                        <li><strong>第二步：</strong> 扭蛋機會隨機抽出「人物」、「地點」和「事件」。</li>
+                        <li><strong>任務目標：</strong> 利用抽出來的這三個荒謬元素，發揮想像力，寫出一段約 50 字的有趣小故事！</li>
+                    </ul>
+                </div>
+
+                <div class="gacha-container">
+                    <div class="gacha-col"><div class="gacha-title">👤 人物</div><div class="gacha-slot"><span id="slot-who">❓</span></div></div>
+                    <div class="gacha-col"><div class="gacha-title">📍 地點</div><div class="gacha-slot"><span id="slot-where">❓</span></div></div>
+                    <div class="gacha-col"><div class="gacha-title">🎬 事件</div><div class="gacha-slot"><span id="slot-what">❓</span></div></div>
+                </div>
+                <div>
+                    <button class="btn" id="btn-spin" style="font-size: 1.5rem; padding: 15px 40px;" onclick="spinGacha()">🎲 開始抽卡！</button>
+                </div>
+                <button class="btn-restart" onclick="resetSetup(1)">🔙 返回老師設定</button>
+            </div>
+        </div>
+
+        <!-- ================= 遊戲 2：句子擴寫熱氣球 ================= -->
+        <div id="game2" class="game-section">
+            <div id="setup2" class="setup-box">
+                <h3>👨‍🏫 老師設定區：設計擴寫階梯</h3>
+                <p>請輸入基礎句及擴寫條件，格式：<br><b>原句 | 提示1 | 擴寫句1 | 提示2 | 擴寫句2</b></p>
+                <textarea id="expand-input" rows="4">小狗叫。|加上時間與地點|昨天晚上，小狗在公園叫。|加上形容詞與副詞|昨天晚上，一隻全身濕透的小狗在公園裡可憐地汪汪大叫。</textarea>
+                <button class="btn btn-blue" onclick="startExpand()">✨ 生成擴寫熱氣球 ✨</button>
+            </div>
+
+            <div id="play2" class="play-area">
+                <h2>🎈 句子擴寫熱氣球</h2>
+                <div class="guide-box">
+                    <h3>📝 冒險指南：為何要擴寫？</h3>
+                    <ul>
+                        <li>原句就像一顆扁扁的氣球，太短又沒趣。</li>
+                        <li><strong>任務目標：</strong> 根據橘色的提示，在腦海或紙上加上「形容詞」、「時間」、「地點」等細節，把句子像氣球一樣「吹」得又大又漂亮！</li>
+                        <li>寫完後，點擊「查看大師示範」，對比一下自己寫的句子。</li>
+                    </ul>
+                </div>
+                <div id="expand-stages" style="width: 100%;"></div>
+                <button class="btn-restart" onclick="resetSetup(2)">🔙 返回老師設定</button>
+            </div>
+        </div>
+
+        <!-- ================= 遊戲 3：瞎拼魔法書 ================= -->
+        <div id="game3" class="game-section">
+            <div id="setup3" class="setup-box">
+                <h3>👨‍🏫 老師設定區：編寫魔法咒語</h3>
+                <p>請輸入故事模板，需要填空的地方用中括號 <b>[詞性]</b> 標示出來。</p>
+                <textarea id="madlib-input" rows="5">今天，一隻[形容詞]的[動物]來到了[地點]。牠看到大家都在[動作]，覺得非常[情緒形容詞]。</textarea>
+                <button class="btn btn-blue" onclick="startMadlib()">✨ 生成瞎拼魔法書 ✨</button>
+            </div>
+
+            <div id="play3" class="play-area">
+                <div id="madlib-form" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <h2>🤪 瞎拼魔法書</h2>
+                    <div class="guide-box">
+                        <h3>📝 冒險指南：亂填一通才好玩！</h3>
+                        <ul>
+                            <li>現在你<strong>看不到</strong>故事的內容，這是一本隱形的魔法書。</li>
+                            <li><strong>任務目標：</strong> 根據系統要求的「詞語類型」（例如動物、形容詞），在框框內隨意填寫對應的詞語。</li>
+                            <li>全部填完後，點擊揭曉，看看會變出多麼荒謬搞笑的故事！</li>
+                        </ul>
+                    </div>
+                    <div id="madlib-inputs" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+                    <button class="btn" style="font-size: 1.5rem;" onclick="showMadlibStory()">📖 施展魔法，揭曉故事！</button>
+                    <button class="btn-restart" onclick="resetSetup(3)">🔙 返回老師設定</button>
+                </div>
+                
+                <div id="madlib-result" style="display: none; width: 100%;">
+                    <h2>✨ 你的瘋狂專屬故事：</h2>
+                    <div id="madlib-final-story" class="madlib-story"></div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn" onclick="resetMadlib()">🔄 換個詞再玩一次</button>
+                        <button class="btn btn-restart" onclick="resetSetup(3)">🔙 返回老師設定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 遊戲 4：標點過山車 ================= -->
+        <div id="game4" class="game-section">
+            <div id="setup4" class="setup-box">
+                <h3>👨‍🏫 老師設定區：鋪設過山車軌道</h3>
+                <p>請輸入帶有正確標點符號的段落。系統會自動把標點變成空白軌道。（支援：，。！？：「」、；）</p>
+                <textarea id="punct-input" rows="4">小明大聲說：「今天天氣真好！我們一起去公園玩吧。」</textarea>
+                <button class="btn btn-blue" onclick="startPunct()">✨ 生成標點過山車 ✨</button>
+            </div>
+
+            <div id="play4" class="play-area">
+                <h2>🚂 標點過山車</h2>
+                <div class="guide-box">
+                    <h3>📝 冒險指南：修補軌道！</h3>
+                    <ul>
+                        <li>文字中缺少了標點符號，過山車無法前進啦！</li>
+                        <li><strong>任務目標：</strong> 點擊白色的立體方塊，方塊裡的標點符號會不斷切換。</li>
+                        <li>選擇你認為正確的標點，把整段軌道修好，然後點擊「檢查軌道」！</li>
+                    </ul>
+                </div>
+                <div class="rollercoaster-bg">
+                    <div id="punct-text" class="punct-sentence"></div>
+                </div>
+                <button class="btn" style="font-size: 1.4rem; margin-top: 25px;" onclick="checkPunct()">✅ 檢查軌道，開車！</button>
+                <button class="btn-restart" onclick="resetSetup(4)">🔙 返回老師設定</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 專屬過關/提示彈窗 -->
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🎉</div>
+            <h2 id="modal-title" class="modal-title">標題</h2>
+            <p id="modal-text" class="modal-text">提示文字</p>
+            <button class="btn btn-blue" onclick="closeModal()">知道了！</button>
+        </div>
+    </div>
+
+    <script>
+        // ================= 工具函數：自訂彈出視窗 =================
+        function showModal(title, text, icon = "🎉") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('custom-modal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('custom-modal').style.display = 'none';
+        }
+
+        // ================= 頁面切換邏輯 =================
+        function switchTab(tabId) {
+            document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function resetSetup(gameNum) {
+            document.getElementById(`setup${gameNum}`).style.display = 'block';
+            document.getElementById(`play${gameNum}`).style.display = 'none';
+        }
+
+        // ================= 遊戲 1：靈感扭蛋機 =================
+        let gachaData = {};
+        function startGacha() {
+            gachaData.who = document.getElementById('gacha-who').value.split('\n').filter(s=>s.trim());
+            gachaData.where = document.getElementById('gacha-where').value.split('\n').filter(s=>s.trim());
+            gachaData.what = document.getElementById('gacha-what').value.split('\n').filter(s=>s.trim());
+            
+            if(gachaData.who.length < 2 || gachaData.where.length < 2 || gachaData.what.length < 2) {
+                showModal("設定錯誤", "每個項目請至少輸入兩個選項，扭蛋機才好玩喔！", "⚠️"); return;
+            }
+            document.getElementById('setup1').style.display = 'none';
+            document.getElementById('play1').style.display = 'flex';
+            document.getElementById('slot-who').innerText = '❓';
+            document.getElementById('slot-where').innerText = '❓';
+            document.getElementById('slot-what').innerText = '❓';
+        }
+
+        function spinGacha() {
+            const btn = document.getElementById('btn-spin');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            let spins = 0;
+            const maxSpins = 20;
+            
+            const timer = setInterval(() => {
+                document.getElementById('slot-who').innerText = gachaData.who[Math.floor(Math.random() * gachaData.who.length)];
+                document.getElementById('slot-where').innerText = gachaData.where[Math.floor(Math.random() * gachaData.where.length)];
+                document.getElementById('slot-what').innerText = gachaData.what[Math.floor(Math.random() * gachaData.what.length)];
+                spins++;
+                if(spins >= maxSpins) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    
+                    // 加上放大動畫
+                    document.querySelectorAll('.gacha-slot').forEach(el => {
+                        el.style.transform = 'scale(1.1)';
+                        setTimeout(() => el.style.transform = 'scale(1)', 200);
+                    });
+                }
+            }, 100);
+        }
+
+        // ================= 遊戲 2：句子擴寫熱氣球 =================
+        function startExpand() {
+            const text = document.getElementById('expand-input').value;
+            const parts = text.split('|');
+            if(parts.length < 3) { showModal("設定錯誤", "格式不正確，請參考例子使用直線「|」隔開內容喔！", "⚠️"); return; }
+            
+            document.getElementById('setup2').style.display = 'none';
+            document.getElementById('play2').style.display = 'flex';
+            
+            const container = document.getElementById('expand-stages');
+            container.innerHTML = `<div class="expand-step"><div class="expand-target">🌱 原句：${parts[0]}</div></div>`;
+            
+            for(let i=1; i<parts.length; i+=2) {
+                if(!parts[i+1]) break;
+                const stepId = `expand-res-${i}`;
+                container.innerHTML += `
+                    <div class="expand-step">
+                        <div class="expand-hint">✨ 挑戰 ${Math.ceil(i/2)}：${parts[i]}</div>
+                        <textarea placeholder="請在這裡輸入你的擴寫句子..." rows="2"></textarea>
+                        <button class="btn btn-blue" style="padding: 8px 20px; font-size: 1rem; margin-top:15px; margin-left:0;" onclick="document.getElementById('${stepId}').style.display='block'">🔍 查看大師示範</button>
+                        <div id="${stepId}" class="expand-result">👩‍🏫 參考答案：${parts[i+1]}</div>
+                    </div>`;
+            }
+        }
+
+        // ================= 遊戲 3：瞎拼魔法書 =================
+        let madlibTemplate = "";
+        let madlibBlanks = [];
+        
+        function startMadlib() {
+            madlibTemplate = document.getElementById('madlib-input').value;
+            const regex = /\[(.*?)\]/g;
+            let match;
+            madlibBlanks = [];
+            
+            while ((match = regex.exec(madlibTemplate)) !== null) {
+                madlibBlanks.push(match[1]);
+            }
+            
+            if(madlibBlanks.length === 0) { showModal("設定錯誤", "找不到標籤！請確保使用中括號 [ ] 標示需要填空的詞語。", "⚠️"); return; }
+            
+            document.getElementById('setup3').style.display = 'none';
+            document.getElementById('play3').style.display = 'flex';
+            resetMadlib();
+        }
+
+        function resetMadlib() {
+            document.getElementById('madlib-form').style.display = 'flex';
+            document.getElementById('madlib-result').style.display = 'none';
+            
+            const container = document.getElementById('madlib-inputs');
+            container.innerHTML = '';
+            madlibBlanks.forEach((blank, idx) => {
+                container.innerHTML += `
+                    <div class="madlib-input-group">
+                        <div class="madlib-label">🪄 ${blank}：</div>
+                        <input type="text" id="madlib-val-${idx}" placeholder="請輸入一個${blank}...">
+                    </div>`;
+            });
+        }
+
+        function showMadlibStory() {
+            let story = madlibTemplate;
+            let allFilled = true;
+            
+            madlibBlanks.forEach((blank, idx) => {
+                const val = document.getElementById(`madlib-val-${idx}`).value.trim();
+                if(!val) allFilled = false;
+                story = story.replace(`[${blank}]`, `<span class="madlib-blank">${val || '___'}</span>`);
+            });
+            
+            if(!allFilled) {
+                showModal("等一下！", "有些空格還沒填喔，把所有格子填滿魔法才會生效！", "🛑"); return;
+            }
+            
+            document.getElementById('madlib-final-story').innerHTML = story;
+            document.getElementById('madlib-form').style.display = 'none';
+            document.getElementById('madlib-result').style.display = 'block';
+        }
+
+        // ================= 遊戲 4：標點過山車 =================
+        const punctList = [' ', '，', '。', '！', '？', '：', '「', '」', '、', '；'];
+        let correctPuncts = [];
+
+        function startPunct() {
+            const rawText = document.getElementById('punct-input').value;
+            correctPuncts = [];
+            let displayHTML = "";
+            let pIdx = 0;
+
+            for(let i=0; i<rawText.length; i++) {
+                const char = rawText[i];
+                if(punctList.includes(char) && char !== ' ') {
+                    correctPuncts.push(char);
+                    displayHTML += `<div class="punct-box" id="pbox-${pIdx}" data-correct="${char}" data-current="0" onclick="cyclePunct(${pIdx})"> </div>`;
+                    pIdx++;
+                } else {
+                    displayHTML += char;
+                }
+            }
+
+            if(correctPuncts.length === 0) { showModal("設定錯誤", "找不到系統支援的標點符號（，。！？：「」、；）！", "⚠️"); return; }
+
+            document.getElementById('punct-text').innerHTML = displayHTML;
+            document.getElementById('setup4').style.display = 'none';
+            document.getElementById('play4').style.display = 'flex';
+        }
+
+        function cyclePunct(id) {
+            const box = document.getElementById(`pbox-${id}`);
+            box.classList.remove('punct-correct', 'punct-wrong');
+            
+            let currentIdx = parseInt(box.getAttribute('data-current'));
+            currentIdx = (currentIdx + 1) % punctList.length;
+            box.setAttribute('data-current', currentIdx);
+            box.innerText = punctList[currentIdx];
+        }
+
+        function checkPunct() {
+            let allCorrect = true;
+            for(let i=0; i<correctPuncts.length; i++) {
+                const box = document.getElementById(`pbox-${i}`);
+                const currentPunct = punctList[parseInt(box.getAttribute('data-current'))];
+                const targetPunct = box.getAttribute('data-correct');
+                
+                box.classList.remove('punct-correct', 'punct-wrong');
+                
+                if(currentPunct === targetPunct) {
+                    box.classList.add('punct-correct');
+                } else {
+                    box.classList.add('punct-wrong');
+                    allCorrect = false;
+                }
+            }
+            
+            if(allCorrect) {
+                showModal("太厲害了！", "所有標點符號都放對了！過山車順利到達終點啦！🚂💨", "🎢");
+            } else {
+                showModal("哎呀！", "有些標點符號不太對喔，紅色的方塊放錯了，再試著修改一下吧！", "💥");
+            }
+        }
+    </script>
+</body>
+</html>

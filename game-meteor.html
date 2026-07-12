@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>隕石防衛戰 - 錯別字射擊</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #121220; /* 太空深色背景 */
+            color: #fff;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden; /* 防止滾動 */
+            touch-action: none;
+        }
+        h1 { color: #4fc3f7; font-size: 1.6rem; margin-bottom: 10px; text-align: center; text-shadow: 0 0 10px #0288d1;}
+        
+        /* 老師設定畫面 */
+        #setup-view {
+            background: #1e1e2f;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 95%;
+            box-sizing: border-box;
+            color: #eee;
+            margin-top: 20px;
+        }
+        .instruction { font-size: 1rem; color: #b0bec5; margin-bottom: 15px; line-height: 1.6; }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            background-color: #2c2c3f;
+            color: #fff;
+            border: 2px solid #4fc3f7;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .btn-main {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #01579b;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto;
+        }
+        .btn-main:active { box-shadow: 0 0 #01579b; transform: translateY(4px); }
+        .error-msg { color: #ff5252; font-weight: bold; margin-top: 10px; display: none; text-align: center;}
+
+        /* 遊戲畫面 */
+        #game-view { display: none; width: 100%; max-width: 600px; height: 90vh; flex-direction: column; position: relative; }
+        
+        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; align-items: center; z-index: 10;}
+        .btn-back { background-color: #455a64; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+        
+        .stats-board { display: flex; gap: 15px; }
+        .stat-box { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.2);}
+        .score-text { color: #ffd54f; }
+        .hp-text { color: #ff5252; }
+
+        /* 遊戲主戰場 */
+        #battle-field {
+            flex-grow: 1;
+            background: linear-gradient(to bottom, #0a0a1a, #1a1a3a);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #3949ab;
+            box-shadow: 0 0 20px rgba(57, 73, 171, 0.5);
+            cursor: crosshair;
+        }
+
+        /* 玩家砲台 */
+        #player {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            transform: translateX(-50%);
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234fc3f7"><path d="M12 2L4 10h3v12h10V10h3L12 2z"/></svg>') no-repeat center center;
+            background-size: contain;
+            transition: left 0.1s ease-out;
+            z-index: 5;
+        }
+
+        /* 隕石 */
+        .meteor {
+            position: absolute;
+            background: radial-gradient(circle, #8d6e63, #3e2723);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+            padding: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8), inset -2px -2px 10px rgba(0,0,0,0.5);
+            transform: translateX(-50%); /* 以中心點定位 */
+            white-space: nowrap;
+        }
+
+        /* 子彈 */
+        .bullet {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background-color: #ffd54f;
+            border-radius: 2px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 5px #ffd54f;
+        }
+
+        /* 漂浮分數/提示文字 */
+        .float-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: floatUp 1s forwards ease-out;
+            pointer-events: none;
+            transform: translateX(-50%);
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -30px); }
+        }
+
+        /* 畫面震動效果 */
+        @keyframes shakeScreen {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .shake { animation: shakeScreen 0.3s; border-color: #ff5252 !important; box-shadow: 0 0 20px rgba(255,82,82,0.8) !important;}
+
+        /* 開始/結束覆蓋層 */
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100;
+            flex-direction: column; text-align: center; border-radius: 12px;
+        }
+        .overlay-box { background: #2c2c3f; padding: 30px; border-radius: 12px; border: 2px solid #4fc3f7;}
+
+    </style>
+</head>
+<body>
+
+    <div id="setup-view">
+        <h1>🚀 隕石防衛戰生成器 🚀</h1>
+        <div class="instruction">
+            <strong>使用說明：</strong><br>
+            請輸入正確詞語，並加上冒號，後面跟著學生常犯的「錯別字」（用逗號隔開）。<br>
+            <span style="color: #4fc3f7;">例子：綠草如茵：綠草如菌，綠早如茵</span><br><br>
+            <strong>🎯 遊戲任務：</strong> 擊毀寫著「錯別字」的隕石（+10分）。讓「正確詞語」安全降落（+5分）。如果誤擊正確詞語，或讓錯別字砸中基地，都會扣除生命值！
+        </div>
+        <textarea id="word-input" rows="8">
+綠草如茵：綠草如菌，綠草茹茵
+熱血沸騰：熱血佛騰，熟血沸騰
+堅定不移：堅定不疑
+打道回府：打導回府
+頭腦：頭惱，電腦
+振奮：震奮，振奮
+篩選：師選</textarea>
+        <button class="btn-main" onclick="prepareGame()">✨ 啟動防禦系統 ✨</button>
+        <div id="error-msg" class="error-msg"></div>
+    </div>
+
+    <div id="game-view">
+        <div class="top-bar">
+            <button class="btn-back" onclick="backToSetup()">🔙 放棄任務</button>
+            <div class="stats-board">
+                <div class="stat-box score-text">分數: <span id="score">0</span></div>
+                <div class="stat-box hp-text">❤️ 生命: <span id="hp">5</span></div>
+            </div>
+        </div>
+
+        <div id="battle-field" onmousemove="movePlayer(event)" ontouchmove="movePlayerTouch(event)" onmousedown="startShooting()" onmouseup="stopShooting()" ontouchstart="startShootingTouch(event)" ontouchend="stopShooting()">
+            <div id="player"></div>
+            
+            <div id="overlay">
+                <div class="overlay-box">
+                    <h2 id="modal-title" style="color: #4fc3f7; margin-top: 0;">準備迎戰！</h2>
+                    <p id="modal-desc" style="font-size: 1.1rem;">按住螢幕或滑鼠左鍵發射激光。<br>消滅錯字隕石，保護正確詞語！</p>
+                    <button class="btn-main" id="start-btn" onclick="startGame()">開始戰鬥</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 遊戲資料與狀態
+        let gameData = { correctWords: [], typos: [] }; // 整理後的資料庫
+        let score = 0;
+        let hp = 5;
+        let isPlaying = false;
+        
+        // 實體陣列
+        let meteors = [];
+        let bullets = [];
+        
+        // 遊戲迴圈與計時器
+        let gameLoopFrame;
+        let meteorSpawnTimer;
+        let shootTimer;
+        
+        // 玩家位置
+        let playerX = 200; // 預設中間
+        const field = document.getElementById('battle-field');
+        const playerEl = document.getElementById('player');
+
+        // 解析老師輸入
+        function prepareGame() {
+            const inputText = document.getElementById('word-input').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!inputText) {
+                errorMsg.textContent = "指揮官，請輸入詞語資料！";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            gameData = { correctWords: [], typos: [] };
+            const lines = inputText.split('\n');
+
+            lines.forEach((line) => {
+                const parts = line.split(/[:：]/);
+                if (parts.length >= 2) {
+                    const correctWord = parts[0].trim();
+                    if (correctWord) gameData.correctWords.push(correctWord);
+                    
+                    // 支援全半形逗號或頓號分割錯字
+                    const typoList = parts[1].split(/[,，、]/);
+                    typoList.forEach(typo => {
+                        const t = typo.trim();
+                        if (t) gameData.typos.push(t);
+                    });
+                }
+            });
+
+            if (gameData.correctWords.length === 0 || gameData.typos.length === 0) {
+                errorMsg.textContent = "格式錯誤！確保有「正確詞語：錯字1，錯字2」。";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            errorMsg.style.display = "none";
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            
+            showOverlay("準備迎戰！", "按住螢幕或滑鼠左鍵發射激光。<br><span style='color:#ff5252'>消滅錯字隕石</span>，<span style='color:#4caf50'>保護正確詞語安全降落</span>！", "開始戰鬥");
+        }
+
+        // 玩家移動控制
+        function updatePlayerPos(clientX) {
+            const rect = field.getBoundingClientRect();
+            let x = clientX - rect.left;
+            // 邊界限制
+            if (x < 20) x = 20;
+            if (x > rect.width - 20) x = rect.width - 20;
+            playerX = x;
+            playerEl.style.left = `${playerX}px`;
+        }
+
+        function movePlayer(e) { if (isPlaying) updatePlayerPos(e.clientX); }
+        function movePlayerTouch(e) {
+            if (isPlaying) {
+                e.preventDefault();
+                updatePlayerPos(e.touches[0].clientX);
+            }
+        }
+
+        // 射擊控制
+        function startShooting() {
+            if (!isPlaying) return;
+            fireBullet(); // 點擊立刻發射一次
+            clearInterval(shootTimer);
+            shootTimer = setInterval(fireBullet, 250); // 按住連發速度
+        }
+        function startShootingTouch(e) {
+            if (!isPlaying) return;
+            updatePlayerPos(e.touches[0].clientX); // 觸控時更新位置並開火
+            startShooting();
+        }
+        function stopShooting() { clearInterval(shootTimer); }
+
+        function fireBullet() {
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = `${playerX}px`;
+            bullet.style.bottom = '40px'; // 砲口高度
+            field.appendChild(bullet);
+            
+            bullets.push({ el: bullet, x: playerX, y: field.clientHeight - 40 });
+        }
+
+        // 隕石生成
+        function spawnMeteor() {
+            if (!isPlaying) return;
+            
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor';
+            
+            // 決定是錯字(60%機率)還是正確字(40%機率)
+            const isTypo = Math.random() < 0.6;
+            let wordStr = "";
+            if (isTypo) {
+                wordStr = gameData.typos[Math.floor(Math.random() * gameData.typos.length)];
+            } else {
+                wordStr = gameData.correctWords[Math.floor(Math.random() * gameData.correctWords.length)];
+            }
+            
+            meteor.textContent = wordStr;
+            meteor.dataset.isTypo = isTypo; // 儲存屬性
+            
+            // 設定大小 (字數越多隕石越大)
+            const size = Math.max(50, wordStr.length * 20);
+            meteor.style.width = `${size}px`;
+            meteor.style.height = `${size}px`;
+            
+            // 隨機 X 位置
+            const fieldWidth = field.clientWidth;
+            const startX = Math.floor(Math.random() * (fieldWidth - size)) + (size/2);
+            
+            meteor.style.left = `${startX}px`;
+            meteor.style.top = `-50px`;
+            
+            field.appendChild(meteor);
+            
+            // 速度 (隨機，增加難度)
+            const speed = 1.5 + Math.random() * 1.5;
+            
+            meteors.push({ el: meteor, x: startX, y: -50, radius: size/2, speed: speed, isTypo: isTypo });
+        }
+
+        // 浮動文字特效 (顯示加分扣分)
+        function createFloatText(x, y, text, color) {
+            const ft = document.createElement('div');
+            ft.className = 'float-text';
+            ft.textContent = text;
+            ft.style.color = color;
+            ft.style.left = `${x}px`;
+            ft.style.top = `${y}px`;
+            field.appendChild(ft);
+            setTimeout(() => { ft.remove(); }, 1000);
+        }
+
+        function takeDamage() {
+            hp--;
+            document.getElementById('hp').textContent = hp;
+            field.classList.add('shake');
+            setTimeout(() => { field.classList.remove('shake'); }, 300);
+            
+            if (hp <= 0) gameOver();
+        }
+
+        // 遊戲主迴圈
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            // 移動子彈
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.y -= 8; // 子彈速度
+                b.el.style.top = `${b.y}px`;
+                
+                // 移除出界的子彈
+                if (b.y < -20) {
+                    b.el.remove();
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // 移動隕石 & 碰撞偵測
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                let m = meteors[i];
+                m.y += m.speed;
+                m.el.style.top = `${m.y}px`;
+
+                // 1. 隕石落地 (到達底部)
+                if (m.y > field.clientHeight - 20) {
+                    if (m.isTypo) {
+                        // 錯字落地：基地受損！
+                        takeDamage();
+                        createFloatText(m.x, m.y - 20, "防禦失敗！", "#ff5252");
+                    } else {
+                        // 正確字落地：安全收集物資
+                        score += 5;
+                        document.getElementById('score').textContent = score;
+                        createFloatText(m.x, m.y - 20, "+5", "#4caf50");
+                    }
+                    m.el.remove();
+                    meteors.splice(i, 1);
+                    continue;
+                }
+
+                // 2. 子彈擊中隕石
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    let b = bullets[j];
+                    // 簡單的圓形與點碰撞偵測
+                    let dist = Math.hypot(b.x - m.x, b.y - m.y);
+                    
+                    if (dist < m.radius) {
+                        // 擊中！
+                        if (m.isTypo) {
+                            // 擊毀錯字：加分
+                            score += 10;
+                            document.getElementById('score').textContent = score;
+                            createFloatText(m.x, m.y, "+10", "#ffd54f");
+                        } else {
+                            // 誤擊正確字：扣血扣分
+                            score -= 10;
+                            document.getElementById('score').textContent = score;
+                            takeDamage();
+                            createFloatText(m.x, m.y, "誤擊正確詞語！", "#ff5252");
+                        }
+                        
+                        // 清除隕石與子彈
+                        m.el.remove();
+                        meteors.splice(i, 1);
+                        b.el.remove();
+                        bullets.splice(j, 1);
+                        break; // 隕石已毀，不用檢查其他子彈
+                    }
+                }
+            }
+
+            gameLoopFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // 遊戲流程控制
+        function showOverlay(title, desc, btnText) {
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-title').style.color = (title === "遊戲結束") ? "#ff5252" : "#4fc3f7";
+            document.getElementById('modal-desc').innerHTML = desc;
+            document.getElementById('start-btn').textContent = btnText;
+        }
+
+        function startGame() {
+            // 清理上一局
+            meteors.forEach(m => m.el.remove());
+            bullets.forEach(b => b.el.remove());
+            meteors = [];
+            bullets = [];
+            score = 0;
+            hp = 5;
+            document.getElementById('score').textContent = score;
+            document.getElementById('hp').textContent = hp;
+            
+            document.getElementById('overlay').style.display = 'none';
+            isPlaying = true;
+            
+            // 啟動生成器與迴圈
+            meteorSpawnTimer = setInterval(spawnMeteor, 1500); // 每 1.5 秒掉一顆
+            gameLoopFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(meteorSpawnTimer);
+            clearInterval(shootTimer);
+            cancelAnimationFrame(gameLoopFrame);
+            
+            showOverlay("遊戲結束", `基地防禦崩潰！<br>你的最終分數：<span style="font-size:2rem; color:#ffd54f;">${score}</span>`, "重新挑戰");
+        }
+
+        function backToSetup() {
+            isPlaying = false;
+            clearInterval(meteorSpawnTimer);
+            clearInterval(shootTimer);
+            cancelAnimationFrame(gameLoopFrame);
+            meteors.forEach(m => m.el.remove());
+            bullets.forEach(b => b.el.remove());
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

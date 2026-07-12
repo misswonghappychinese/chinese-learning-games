@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>漢字煉金術 - 部件合成大師</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #1a0b2e; /* 魔法深紫色背景 */
+            color: #fff;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        h1 { color: #ce93d8; font-size: 1.8rem; margin-bottom: 10px; text-align: center; text-shadow: 0 0 10px #ab47bc; }
+        
+        /* 老師設定畫面 */
+        #setup-view {
+            background: #2a1545;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #6a1b9a;
+            margin-top: 20px;
+        }
+        .instruction { font-size: 1rem; color: #e1bee7; margin-bottom: 15px; line-height: 1.6; }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            background-color: #3b1f5e;
+            color: #fff;
+            border: 2px solid #ab47bc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .btn-main {
+            background: linear-gradient(45deg, #8e24aa, #ab47bc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #4a148c;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto;
+        }
+        .btn-main:active { box-shadow: 0 0 #4a148c; transform: translateY(4px); }
+        .error-msg { color: #ff5252; font-weight: bold; margin-top: 10px; display: none; text-align: center;}
+
+        /* 遊戲畫面 */
+        #game-view { display: none; width: 100%; max-width: 600px; flex-direction: column; align-items: center; }
+        
+        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; align-items: center;}
+        .btn-back { background-color: #4a148c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+        .progress-text { font-size: 1.2rem; font-weight: bold; color: #ce93d8; }
+
+        /* 題目提示區 */
+        #clue-display {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
+        }
+        .clue-target { color: #ffb74d; border-bottom: 2px dashed #ffb74d; padding: 0 5px;}
+
+        /* 煉金大鍋 */
+        #cauldron-area {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #4a148c, #1a0b2e);
+            border-radius: 50%;
+            border: 5px solid #ab47bc;
+            box-shadow: 0 0 30px rgba(171, 71, 188, 0.6), inset 0 0 40px rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        /* 鍋內的部件槽 */
+        #slots-container {
+            display: flex;
+            gap: 10px;
+        }
+        .slot {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #ce93d8;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slot:hover { background: rgba(255,255,255,0.1); }
+
+        /* 大鍋合成特效 */
+        .cauldron-success { animation: glowPulse 1s forwards; border-color: #69f0ae !important; box-shadow: 0 0 50px rgba(105,240,174,0.8) !important; }
+        .cauldron-fail { animation: shake 0.4s; border-color: #ff5252 !important; }
+
+        /* 最終合成字 */
+        #result-char {
+            position: absolute;
+            font-size: 6rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 20px #69f0ae, 0 0 40px #69f0ae;
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+        .result-animate { animation: popResult 1.5s forwards; }
+
+        /* 底部材料區 */
+        #materials-pool {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            box-sizing: border-box;
+            min-height: 150px;
+        }
+
+        /* 漂浮的部件 */
+        .component {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #7b1fa2, #4a148c);
+            border: 2px solid #ce93d8;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s, opacity 0.3s;
+            animation: float 3s infinite ease-in-out alternate;
+        }
+        .component:active { transform: scale(0.9); }
+        .component.used { opacity: 0; pointer-events: none; transform: scale(0); }
+
+        /* 動畫集 */
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 30px rgba(171, 71, 188, 0.6); }
+            50% { box-shadow: 0 0 60px #69f0ae, inset 0 0 50px #69f0ae; }
+            100% { box-shadow: 0 0 30px rgba(171, 71, 188, 0.6); }
+        }
+        @keyframes popResult {
+            0% { opacity: 0; transform: scale(0.5); }
+            30% { opacity: 1; transform: scale(1.2); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-8px); }
+        }
+
+        /* 慶祝過關覆蓋層 */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 100;
+            flex-direction: column; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-view">
+        <h1>🧪 漢字煉金術生成器 🧪</h1>
+        <div class="instruction">
+            <strong>使用說明：</strong><br>
+            請輸入題目、目標字及合成部件。格式為：<br>
+            <span style="color: #ffb74d;">題目提示：目標字 = 部件1 + 部件2</span><br><br>
+            <strong>例子：</strong><br>
+            熱血＿＿騰：沸 = 氵 + 弗<br>
+            綠草如＿＿：茵 = 艹 + 因<br>
+            堅定不＿＿：移 = 禾 + 多
+        </div>
+        <textarea id="word-input" rows="8">
+熱血＿＿騰：沸 = 氵 + 弗
+綠草如＿＿：茵 = 艹 + 因
+堅定不＿＿：移 = 禾 + 多
+＿＿奮人心：振 = 扌 + 辰
+清＿＿：爽 = 大 + 爻 + 爻
+打道回＿＿：府 = 广 + 付
+頭＿＿：腦 = 月 + 𡿨 + 凶
+交＿＿：叉 = 又 + 丶</textarea>
+        <button class="btn-main" onclick="prepareGame()">✨ 啟動魔法陣 ✨</button>
+        <div id="error-msg" class="error-msg"></div>
+    </div>
+
+    <div id="game-view">
+        <div class="top-bar">
+            <button class="btn-back" onclick="backToSetup()">🔙 結束煉金</button>
+            <div class="progress-text">進度：<span id="level-text">1 / 5</span></div>
+        </div>
+
+        <div id="clue-display">熱血<span class="clue-target">？</span>騰</div>
+
+        <div id="cauldron-area">
+            <div id="slots-container">
+                </div>
+            <div id="result-char">沸</div>
+        </div>
+
+        <div style="color: #e1bee7; margin-bottom: 10px; font-size: 0.9rem;">👇 點擊下方材料加入大鍋中 👇</div>
+        
+        <div id="materials-pool">
+            </div>
+    </div>
+
+    <div id="overlay">
+        <h2 style="color: #69f0ae; font-size: 3rem; margin-bottom: 10px;">煉金大師！</h2>
+        <p style="color: #fff; font-size: 1.5rem; margin-bottom: 30px;">你成功合成了所有的漢字！</p>
+        <button class="btn-main" onclick="backToSetup()">再次挑戰</button>
+    </div>
+
+    <script>
+        let gameData = [];
+        let currentLevel = 0;
+        let cauldronContent = []; // 存放在鍋裡的部件 ID
+        let lockCauldron = false;
+
+        // 常見的干擾部件庫
+        const commonRadicals = ["氵", "木", "艹", "扌", "心", "月", "日", "口", "辶", "阝", "女", "糸", "貝", "玉", "金"];
+
+        function prepareGame() {
+            const inputText = document.getElementById('word-input').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!inputText) {
+                errorMsg.textContent = "請輸入煉金配方！";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            gameData = [];
+            const lines = inputText.split('\n');
+
+            lines.forEach((line) => {
+                // 解析格式：熱血＿＿騰：沸 = 氵 + 弗
+                // 支援全半形符號
+                const parts1 = line.split(/[:：]/);
+                if (parts1.length === 2) {
+                    const clue = parts1[0].trim();
+                    const formulaPart = parts1[1].split(/[=＝]/);
+                    
+                    if (formulaPart.length === 2) {
+                        const targetChar = formulaPart[0].trim();
+                        // 以 + 或逗號分割部件
+                        const components = formulaPart[1].split(/[+＋,，、]/).map(c => c.trim()).filter(c => c);
+                        
+                        if (clue && targetChar && components.length > 0) {
+                            gameData.push({
+                                clue: clue,
+                                target: targetChar,
+                                parts: components
+                            });
+                        }
+                    }
+                }
+            });
+
+            if (gameData.length === 0) {
+                errorMsg.innerHTML = "格式錯誤！請確保格式為<br>「題目：目標字 = 部件1 + 部件2」";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            // 打亂題目順序
+            gameData.sort(() => Math.random() - 0.5);
+
+            errorMsg.style.display = "none";
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            
+            currentLevel = 0;
+            loadLevel();
+        }
+
+        function loadLevel() {
+            if (currentLevel >= gameData.length) {
+                document.getElementById('overlay').style.display = 'flex';
+                return;
+            }
+
+            const levelData = gameData[currentLevel];
+            lockCauldron = false;
+            cauldronContent = [];
+
+            // 1. 更新進度與提示
+            document.getElementById('level-text').textContent = `${currentLevel + 1} / ${gameData.length}`;
+            
+            // 將題目中的「＿」替換為高亮的問號
+            let displayClue = levelData.clue.replace(/_+/g, '<span class="clue-target">？</span>');
+            document.getElementById('clue-display').innerHTML = displayClue;
+
+            // 2. 準備大鍋的槽位
+            const slotsContainer = document.getElementById('slots-container');
+            slotsContainer.innerHTML = '';
+            for (let i = 0; i < levelData.parts.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.id = `slot-${i}`;
+                slot.onclick = () => removeFromCauldron(i);
+                slotsContainer.appendChild(slot);
+            }
+
+            // 3. 準備底部材料池 (正確部件 + 隨機干擾部件)
+            const pool = document.getElementById('materials-pool');
+            pool.innerHTML = '';
+            
+            let availableParts = [...levelData.parts];
+            
+            // 加入 4~6 個干擾部件
+            let distractorsNeeded = 5;
+            let tempRadicals = [...commonRadicals].sort(() => Math.random() - 0.5);
+            for(let i=0; i<distractorsNeeded; i++) {
+                if(tempRadicals[i] && !availableParts.includes(tempRadicals[i])) {
+                    availableParts.push(tempRadicals[i]);
+                }
+            }
+
+            // 打亂所有部件
+            availableParts.sort(() => Math.random() - 0.5);
+
+            availableParts.forEach((part, index) => {
+                const comp = document.createElement('div');
+                comp.className = 'component';
+                comp.id = `comp-${index}`;
+                comp.textContent = part;
+                // 給予不同的漂浮動畫延遲，看起來更自然
+                comp.style.animationDelay = `${Math.random() * 2}s`; 
+                comp.onclick = () => moveToCauldron(index, part);
+                pool.appendChild(comp);
+            });
+        }
+
+        function moveToCauldron(compId, partText) {
+            if (lockCauldron) return;
+            const levelData = gameData[currentLevel];
+            
+            // 如果鍋滿了，不動作
+            if (cauldronContent.length >= levelData.parts.length) return;
+
+            // 隱藏底部的材料
+            document.getElementById(`comp-${compId}`).classList.add('used');
+
+            // 加入大鍋陣列
+            cauldronContent.push({ id: compId, text: partText });
+
+            // 更新大鍋 UI
+            updateCauldronUI();
+
+            // 檢查是否已放滿，若放滿則驗證
+            if (cauldronContent.length === levelData.parts.length) {
+                checkAlchemy();
+            }
+        }
+
+        function removeFromCauldron(slotIndex) {
+            if (lockCauldron) return;
+            // 如果點擊的槽位是空的，不動作
+            if (slotIndex >= cauldronContent.length) return;
+
+            // 取得要移除的部件
+            const removedItem = cauldronContent.splice(slotIndex, 1)[0];
+
+            // 恢復底部的材料顯示
+            document.getElementById(`comp-${removedItem.id}`).classList.remove('used');
+
+            // 更新大鍋 UI
+            updateCauldronUI();
+        }
+
+        function updateCauldronUI() {
+            const levelData = gameData[currentLevel];
+            for (let i = 0; i < levelData.parts.length; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (i < cauldronContent.length) {
+                    slot.textContent = cauldronContent[i].text;
+                    slot.style.background = 'rgba(206, 147, 216, 0.2)';
+                    slot.style.borderStyle = 'solid';
+                } else {
+                    slot.textContent = '';
+                    slot.style.background = 'rgba(0,0,0,0.3)';
+                    slot.style.borderStyle = 'dashed';
+                }
+            }
+        }
+
+        function checkAlchemy() {
+            lockCauldron = true;
+            const levelData = gameData[currentLevel];
+            const cauldronArea = document.getElementById('cauldron-area');
+            
+            // 檢查材料是否正確 (不論先後順序)
+            let required = [...levelData.parts].sort().join('');
+            let current = cauldronContent.map(item => item.text).sort().join('');
+
+            if (required === current) {
+                // 合成成功！
+                cauldronArea.classList.add('cauldron-success');
+                
+                // 隱藏槽位，顯示合成結果
+                document.getElementById('slots-container').style.display = 'none';
+                const resultChar = document.getElementById('result-char');
+                resultChar.textContent = levelData.target;
+                resultChar.classList.add('result-animate');
+
+                // 更新上方的提示文字為完整詞語
+                let displayClue = levelData.clue.replace(/_+/g, `<span style="color:#69f0ae;">${levelData.target}</span>`);
+                document.getElementById('clue-display').innerHTML = displayClue;
+
+                setTimeout(() => {
+                    cauldronArea.classList.remove('cauldron-success');
+                    resultChar.classList.remove('result-animate');
+                    document.getElementById('slots-container').style.display = 'flex';
+                    currentLevel++;
+                    loadLevel();
+                }, 2000); // 欣賞 2 秒鐘合成動畫
+
+            } else {
+                // 合成失敗！
+                cauldronArea.classList.add('cauldron-fail');
+                
+                setTimeout(() => {
+                    cauldronArea.classList.remove('cauldron-fail');
+                    // 將材料吐出來
+                    cauldronContent.forEach(item => {
+                        document.getElementById(`comp-${item.id}`).classList.remove('used');
+                    });
+                    cauldronContent = [];
+                    updateCauldronUI();
+                    lockCauldron = false;
+                }, 600); // 震動結束後恢復
+            }
+        }
+
+        function backToSetup() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

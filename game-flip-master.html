@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>記憶翻牌大師生成器</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #fff3e0;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #e65100; font-size: 1.8rem; margin-bottom: 10px; text-align: center;}
+        
+        /* 老師設定畫面 */
+        #setup-view {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .instruction { font-size: 1rem; color: #555; margin-bottom: 15px; line-height: 1.6; }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            border: 2px solid #ffb74d;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .btn-main {
+            background-color: #f57c00;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px #e65100;
+            transition: all 0.2s;
+            font-weight: bold;
+            display: block;
+            margin: 0 auto;
+        }
+        .btn-main:active { box-shadow: 0 0 #e65100; transform: translateY(4px); }
+        .error-msg { color: #d32f2f; font-weight: bold; margin-top: 10px; display: none; text-align: center;}
+
+        /* 遊戲畫面 */
+        #game-view { display: none; width: 100%; max-width: 800px; flex-direction: column; align-items: center; }
+        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; align-items: center;}
+        .btn-back { background-color: #9e9e9e; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+        .score-board { font-size: 1.2rem; font-weight: bold; color: #e65100; background: #ffe0b2; padding: 5px 15px; border-radius: 20px;}
+
+        /* 卡牌網格區 */
+        #card-grid {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+            perspective: 1000px; /* 給予 3D 翻轉的立體感 */
+        }
+
+        /* 卡牌設計 */
+        .card {
+            width: 100%;
+            aspect-ratio: 3 / 4; /* 卡牌比例 */
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .card.flipped { transform: rotateY(180deg); }
+        .card.matched { opacity: 0.6; cursor: default; }
+        
+        .card.matched .card-back {
+            border: 3px solid #4caf50;
+            background-color: #e8f5e9;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* 翻轉後隱藏背面 */
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* 卡牌背面 (未翻開的花紋) */
+        .card-front {
+            background: repeating-linear-gradient(
+                45deg,
+                #ffb74d,
+                #ffb74d 10px,
+                #ffa726 10px,
+                #ffa726 20px
+            );
+            border: 2px solid #fff;
+        }
+
+        /* 卡牌正面 (翻開後的文字) */
+        .card-back {
+            background-color: #fff;
+            transform: rotateY(180deg);
+            border: 2px solid #ff9800;
+            flex-direction: column;
+        }
+
+        .text-word { font-size: 1.4rem; font-weight: bold; color: #d84315; }
+        .text-clue { font-size: 1rem; color: #333; line-height: 1.3; }
+
+        /* 適應不同螢幕大小 */
+        @media (min-width: 600px) {
+            .text-word { font-size: 1.8rem; }
+            .text-clue { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="setup-view">
+        <h1>🃏 記憶翻牌大師生成器 🃏</h1>
+        <div class="instruction">
+            <strong>使用說明：</strong><br>
+            請輸入要溫習的詞語和解釋（用冒號或橫線分隔）。<br>
+            系統會自動把它們拆分成「詞語卡」和「解釋卡」並打亂。<br>
+            <small style="color: #d84315;">* 建議輸入 6 到 10 組詞語（即 12 到 20 張卡），太多會增加難度並讓畫面太擁擠。</small>
+        </div>
+        <textarea id="word-input" rows="8">
+頭腦：人類思考的器官。
+交叉：兩條線條互相穿過。
+啟事：公開發布的公告文字。
+優先：比其他事物排前處理。
+底氣：做事的信心和憑藉。
+動搖：意志不堅定或改變。
+篩選：挑選出符合要求的。
+預感：事先感覺將發生的事。</textarea>
+        <button class="btn-main" onclick="generateGame()">✨ 一鍵生成牌局 ✨</button>
+        <div id="error-msg" class="error-msg"></div>
+    </div>
+
+    <div id="game-view">
+        <div class="top-bar">
+            <button class="btn-back" onclick="backToSetup()">🔙 重新出題</button>
+            <div class="score-board">成功配對：<span id="score">0</span> / <span id="total-pairs">0</span></div>
+        </div>
+
+        <div id="card-grid"></div>
+    </div>
+
+    <script>
+        let cardData = [];
+        let flippedCards = [];
+        let matchedPairsCount = 0;
+        let totalPairs = 0;
+        let lockBoard = false; // 防止在動畫期間點擊其他牌
+
+        function generateGame() {
+            const inputText = document.getElementById('word-input').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!inputText) {
+                showError("請輸入詞語和解釋！");
+                return;
+            }
+
+            const lines = inputText.split('\n');
+            let tempPairs = [];
+
+            lines.forEach((line, index) => {
+                const parts = line.split(/[:：\-—]/);
+                if (parts.length >= 2) {
+                    const word = parts[0].trim();
+                    const clue = parts.slice(1).join('：').trim();
+                    if (word.length > 0 && clue.length > 0) {
+                        tempPairs.push({ id: index, word: word, clue: clue });
+                    }
+                }
+            });
+
+            if (tempPairs.length < 2) {
+                showError("請至少輸入 2 組有效的「詞語：解釋」才能玩配對！");
+                return;
+            }
+            if (tempPairs.length > 15) {
+                showError("詞語數量太多啦！為了最佳遊戲體驗，請減少到 15 組以內。");
+                return;
+            }
+
+            errorMsg.style.display = "none";
+            totalPairs = tempPairs.length;
+            matchedPairsCount = 0;
+            document.getElementById('total-pairs').textContent = totalPairs;
+            document.getElementById('score').textContent = 0;
+
+            // 創建卡牌陣列 (一對拆成兩張卡)
+            cardData = [];
+            tempPairs.forEach(pair => {
+                // 加入詞語卡
+                cardData.push({ pairId: pair.id, type: 'word', text: pair.word });
+                // 加入解釋卡
+                cardData.push({ pairId: pair.id, type: 'clue', text: pair.clue });
+            });
+
+            // 隨機打亂卡牌 (Fisher-Yates Shuffle)
+            for (let i = cardData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardData[i], cardData[j]] = [cardData[j], cardData[i]];
+            }
+
+            renderGrid();
+            
+            document.getElementById('setup-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+        }
+
+        function showError(msg) {
+            const errorMsg = document.getElementById('error-msg');
+            errorMsg.textContent = msg;
+            errorMsg.style.display = "block";
+        }
+
+        function renderGrid() {
+            const gridEl = document.getElementById('card-grid');
+            gridEl.innerHTML = '';
+            flippedCards = [];
+            lockBoard = false;
+
+            // 根據卡牌總數自動調整網格欄數
+            const totalCards = cardData.length;
+            let cols = 4;
+            if (totalCards <= 8) cols = 3;
+            else if (totalCards <= 12) cols = 4;
+            else if (totalCards <= 20) cols = 5;
+            else cols = 6;
+
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            cardData.forEach((card, index) => {
+                // 建立卡牌容器
+                const cardEl = document.createElement('div');
+                cardEl.classList.add('card');
+                cardEl.dataset.index = index;
+                cardEl.dataset.pairId = card.pairId;
+
+                // 建立正面和背面
+                const cardFront = document.createElement('div');
+                cardFront.classList.add('card-face', 'card-front'); // 覆蓋面 (橘色條紋)
+
+                const cardBack = document.createElement('div');
+                cardBack.classList.add('card-face', 'card-back'); // 文字面
+                
+                // 根據類型賦予不同樣式
+                if (card.type === 'word') {
+                    cardBack.innerHTML = `<span class="text-word">${card.text}</span>`;
+                } else {
+                    cardBack.innerHTML = `<span class="text-clue">${card.text}</span>`;
+                }
+
+                cardEl.appendChild(cardFront);
+                cardEl.appendChild(cardBack);
+
+                // 綁定點擊事件
+                cardEl.addEventListener('click', () => flipCard(cardEl, card));
+                gridEl.appendChild(cardEl);
+            });
+        }
+
+        function flipCard(cardEl, cardInfo) {
+            // 防呆機制：如果鎖定中、已經翻開、或已經配對，則不作反應
+            if (lockBoard) return;
+            if (cardEl.classList.contains('flipped')) return;
+
+            cardEl.classList.add('flipped');
+            flippedCards.push({ element: cardEl, info: cardInfo });
+
+            if (flippedCards.length === 2) {
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            lockBoard = true; // 鎖定點擊，播放動畫
+            let isMatch = flippedCards[0].info.pairId === flippedCards[1].info.pairId;
+
+            if (isMatch) {
+                // 配對成功！
+                setTimeout(() => {
+                    flippedCards[0].element.classList.add('matched');
+                    flippedCards[1].element.classList.add('matched');
+                    
+                    matchedPairsCount++;
+                    document.getElementById('score').textContent = matchedPairsCount;
+                    
+                    resetBoard();
+                    
+                    // 檢查是否贏了
+                    if (matchedPairsCount === totalPairs) {
+                        setTimeout(() => {
+                            alert("🏆 太神啦！你成功配對了所有的詞語和解釋，你是真正的記憶翻牌大師！");
+                        }, 500);
+                    }
+                }, 600); // 延遲一下讓學生看清楚配對成功的牌
+            } else {
+                // 配對失敗，翻回去
+                setTimeout(() => {
+                    flippedCards[0].element.classList.remove('flipped');
+                    flippedCards[1].element.classList.remove('flipped');
+                    resetBoard();
+                }, 1200); // 給予 1.2 秒的記憶時間
+            }
+        }
+
+        function resetBoard() {
+            flippedCards = [];
+            lockBoard = false;
+        }
+
+        function backToSetup() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('setup-view').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
