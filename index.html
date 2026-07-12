@@ -1,228 +1,215 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎪 歡樂中文遊戲大本營 🎪</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🎮 中文語文冒險樂園 - 遊戲大廳</title>
     <style>
         :root {
-            --primary-bg: #E8F5E9;
-            --title-color: #2E7D32;
-            --btn-shadow: rgba(0,0,0,0.15);
+            --primary-bg: #eef2f7;
+            --title-color: #2b5a8f;
+            --subtitle-color: #555555;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.08);
+            --card-hover-shadow: rgba(0, 0, 0, 0.15);
         }
 
         body {
-            font-family: 'Chalkboard SE', 'Comic Sans MS', 'Microsoft JhengHei', sans-serif;
+            font-family: "Microsoft JhengHei", "微軟正黑體", "Helvetica Neue", Arial, sans-serif;
             background-color: var(--primary-bg);
-            background-image: radial-gradient(#C8E6C9 2px, transparent 2px);
-            background-size: 30px 30px;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
-            animation: bounceIn 1s ease;
+            padding: 40px 20px 20px 20px;
+            max-width: 800px;
         }
 
         h1 {
             color: var(--title-color);
             font-size: 2.5rem;
-            margin: 0;
-            text-shadow: 3px 3px 0px #FFF, 5px 5px 0px #A5D6A7;
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
         }
 
-        p.intro {
+        .subtitle {
+            color: var(--subtitle-color);
             font-size: 1.2rem;
-            color: #558B2F;
+            margin: 0;
             font-weight: bold;
-            margin-top: 10px;
         }
 
-        /* 遊戲選擇選單 */
-        .menu-container {
+        /* 遊戲卡片容器 - 自動適應螢幕大小 */
+        .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 25px;
             width: 90%;
-            max-width: 900px;
-            margin-bottom: 30px;
+            max-width: 1200px;
+            padding: 20px 0 60px 0;
         }
 
+        /* 遊戲卡片基礎樣式與各自的主題顏色 */
         .game-card {
-            background: white;
-            border-radius: 25px;
-            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
             text-align: center;
-            box-shadow: 0 8px 16px var(--btn-shadow);
-            border: 4px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            box-shadow: 0 8px 0 var(--border-color), 0 8px 20px var(--card-shadow);
+            border: 4px solid var(--border-color);
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             position: relative;
-            overflow: hidden;
+            top: 0;
         }
 
-        /* 三個遊戲的專屬主題顏色 */
-        .card-1 { border-color: #FF69b4; background: #FFF0F5; }
-        .card-1:hover { transform: translateY(-10px); box-shadow: 0 15px 20px rgba(255,105,180,0.3); }
-        
-        .card-2 { border-color: #4CAF50; background: #F1F8E9; }
-        .card-2:hover { transform: translateY(-10px); box-shadow: 0 15px 20px rgba(76,175,80,0.3); }
+        /* 點擊或懸停時的Q彈動畫效果 */
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 var(--border-color), 0 12px 25px rgba(0, 0, 0, 0.12);
+        }
 
-        .card-3 { border-color: #5C6BC0; background: #E8EAF6; }
-        .card-3:hover { transform: translateY(-10px); box-shadow: 0 15px 20px rgba(92,107,192,0.3); }
+        .game-card:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 var(--border-color), 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
 
-        .game-icon {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            display: block;
+        .card-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover .card-icon {
+            transform: scale(1.15) rotate(5deg);
         }
 
         .game-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
+            color: #333333;
+            margin: 0 0 10px 0;
         }
 
         .game-desc {
             font-size: 0.95rem;
-            color: #666;
-            line-height: 1.4;
+            color: #666666;
+            line-height: 1.5;
+            margin: 0;
         }
 
-        /* 遊戲舞台區 (iframe) */
-        .stage-container {
-            width: 95%;
-            max-width: 950px;
-            background: white;
-            border-radius: 30px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            border: 6px dashed #81C784;
-            display: none; /* 預設隱藏，點擊後顯示 */
-            flex-direction: column;
-            overflow: hidden;
-            margin-top: 10px;
-            animation: slideUp 0.5s ease-out;
-        }
+        /* 為 10 個遊戲配置不同的繽紛色彩邊框 */
+        .card-pinyin-roller { --border-color: #ff7675; }
+        .card-pinyin-balloon { --border-color: #74b9ff; }
+        .card-reading-rpg   { --border-color: #a29bfe; }
+        .card-writing-box   { --border-color: #fdcb6e; }
+        .card-alchemy       { --border-color: #e84393; }
+        .card-meteor        { --border-color: #00cec9; }
+        .card-whack-mole    { --border-color: #2ecc71; }
+        .card-flip-master   { --border-color: #e67e22; }
+        .card-word-hunt     { --border-color: #0984e3; }
+        .card-word-maze     { --border-color: #27ae60; }
 
-        .stage-header {
-            background: #81C784;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .close-btn {
-            background: #FF5252;
-            color: white;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            box-shadow: 0 3px 0 #C44536;
-        }
-        .close-btn:active { transform: translateY(3px); box-shadow: none; }
-
-        iframe {
-            width: 100%;
-            height: 650px;
-            border: none;
-            background: white;
-        }
-
-        /* 動畫效果 */
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* 頁尾資訊 */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #888888;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            iframe { height: 500px; }
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1rem; }
+            .game-grid { grid-template-columns: 1fr; width: 85%; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🎪 歡樂中文遊戲大本營 🎪</h1>
-        <p class="intro">小朋友，快來選擇一個神奇的語文冒險吧！✨</p>
+        <h1>🎮 中文語文冒險樂園</h1>
+        <p class="subtitle">小朋友，請選擇你想挑戰的語文關卡：</p>
     </header>
 
-    <div class="menu-container">
-        <div class="game-card card-1" onclick="playGame('magic-box.html', '🔮 部首魔法箱')">
-            <span class="game-icon">🔮</span>
-            <div class="game-title">部首魔法箱</div>
-            <div class="game-desc">點擊中文魔法符號，召喚神秘的文字家族與寶物！</div>
-        </div>
+    <div class="game-grid">
 
-        <div class="game-card card-2" onclick="playGame('word-adventure.html', '📝 五要素語文大冒險')">
-            <span class="game-icon">📝</span>
-            <div class="game-title">語文大冒險</div>
-            <div class="game-desc">輸入時間、人物、地點，隨機抽取出超瘋狂的故事！</div>
-        </div>
+        <a href="./game-pinyin-roller/" class="game-card card-pinyin-roller">
+            <div class="card-icon">🎢</div>
+            <div class="game-title">聲調過山車</div>
+            <div class="game-desc">聽聽發音，幫過山車選擇正確的拼音聲調軌道吧！</div>
+        </a>
 
-        <div class="game-card card-3" onclick="playGame('language-treasure.html', '🏫 全能語文特訓大本營')">
-            <span class="game-icon">🏫</span>
-            <div class="game-title">語文大寶庫</div>
-            <div class="game-desc">挑戰故事火車、偵探線索與拼音氣球的五合一特訓！</div>
-        </div>
+        <a href="./game-pinyin-balloon/" class="game-card card-pinyin-balloon">
+            <div class="card-icon">🎈</div>
+            <div class="game-title">拼音氣球派對</div>
+            <div class="game-desc">看字找拼音，點擊正確的彩色氣球，引爆你的分數！</div>
+        </a>
+
+        <a href="./game-reading-rpg/" class="game-card card-reading-rpg">
+            <div class="card-icon">📚</div>
+            <div class="game-title">閱讀理解特訓</div>
+            <div class="game-desc">化身勇者進入閱讀之塔，用超強推理能力擊敗守關怪物！</div>
+        </a>
+
+        <a href="./game-writing-box/" class="game-card card-writing-box">
+            <div class="card-icon">🎰</div>
+            <div class="game-title">寫作冒險樂園</div>
+            <div class="game-desc">轉出靈感扭蛋，挑戰標點符號與成語填空大冒險！</div>
+        </a>
+
+        <a href="./game-alchemy/" class="game-card card-alchemy">
+            <div class="card-icon">🔮</div>
+            <div class="game-title">漢字煉金術</div>
+            <div class="game-desc">化身魔法煉金術師，將神秘的部件扔進大鍋合成漢字！</div>
+        </a>
+
+        <a href="./game-meteor/" class="game-card card-meteor">
+            <div class="card-icon">🚀</div>
+            <div class="game-title">隕石防衛戰</div>
+            <div class="game-desc">太空危機！瞄準帶有錯別字的隕石發射炮火，保衛基地！</div>
+        </a>
+
+        <a href="./game-whack-mole/" class="game-card card-whack-mole">
+            <div class="card-icon">🔨</div>
+            <div class="game-title">瘋狂打地鼠</div>
+            <div class="game-desc">考驗你的眼明手快！發現符合題目要求的詞語地鼠就狠狠打下去！</div>
+        </a>
+
+        <a href="./game-flip-master/" class="game-card card-flip-master">
+            <div class="card-icon">🃏</div>
+            <div class="game-title">記憶翻牌大師</div>
+            <div class="game-desc">翻開神秘魔法牌，將詞語與它們正確的解釋完美配對！</div>
+        </a>
+
+        <a href="./game-word-hunt/" class="game-card card-word-hunt">
+            <div class="card-icon">🔍</div>
+            <div class="game-title">文字尋寶遊戲</div>
+            <div class="game-desc">在縱橫交錯的字盤中隱藏著神秘寶藏，連線找出指定詞語！</div>
+        </a>
+
+        <a href="./game-word-maze/" class="game-card card-word-maze">
+            <div class="card-icon">🗺️</div>
+            <div class="game-title">互動詞語迷宮</div>
+            <div class="game-desc">利用方向鍵或按鈕引導角色，在迷宮中依序收集字詞通關！</div>
+        </a>
+
     </div>
 
-    <div id="game-stage" class="stage-container">
-        <div class="stage-header">
-            <span id="stage-title">🎮 遊戲進行中</span>
-            <button class="close-btn" onclick="closeGame()">❌ 離開遊戲</button>
-        </div>
-        <iframe id="game-frame" src=""></iframe>
-    </div>
-
-    <script>
-        function playGame(url, title) {
-            const stage = document.getElementById('game-stage');
-            const frame = document.getElementById('game-frame');
-            const titleSpan = document.getElementById('stage-title');
-
-            // 設定遊戲標題與路徑
-            titleSpan.innerText = "🎮 正在遊玩： " + title;
-            frame.src = url;
-
-            // 顯示舞台並平滑滾動到舞台位置
-            stage.style.display = 'flex';
-            stage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function closeGame() {
-            const stage = document.getElementById('game-stage');
-            const frame = document.getElementById('game-frame');
-            
-            // 隱藏舞台並清空 iframe 防止背景繼續執行或發聲
-            stage.style.display = 'none';
-            frame.src = '';
-            
-            // 滾動回頂部選單
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
+    <footer>
+        <p>© 2026 中文語文冒險樂園 - 專為小學生設計的互動學習平台</p>
+    </footer>
 
 </body>
 </html>
