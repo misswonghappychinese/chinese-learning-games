@@ -456,9 +456,7 @@
         div.className = 'balloon';
         div.innerText = o;
         
-        // 點擊氣球 = 選擇答案 + 朗讀
         div.onclick = () => {
-            // 先朗讀拼音
             speakPinyin(o);
             
             if (o === q.c) {
@@ -482,15 +480,16 @@
         area.appendChild(div);
     });
 }
-            // 新增：獨立發聲函數（兩個遊戲共用）
-            function speakPinyin(text) {
-            if (synth.speaking) synth.cancel();
-            let u = new SpeechSynthesisUtterance(text);
-            u.lang = 'zh-CN';
-            u.rate = 0.8;
-            u.pitch = 1.05;
-            synth.speak(u);
-            }
+
+// 新增：語音共用函數
+function speakPinyin(text) {
+    if (synth.speaking) synth.cancel();
+    let u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 0.82;
+    u.pitch = 1.05;
+    synth.speak(u);
+}
 
         // ================= 5. 聲調過山車 =================
         let rcQs=[], rcCur=0;
@@ -511,37 +510,43 @@
             setTimeout(playRCSound, 500);
         }
         function playRCSound() {
-        if (synth.speaking) synth.cancel();
+    if (synth.speaking) synth.cancel();
     
-        let btn = document.getElementById('rc-audio');
-        btn.classList.add('playing');
+    let btn = document.getElementById('rc-audio');
+    btn.classList.add('playing');
     
-        let utterance = new SpeechSynthesisUtterance(rcQs[rcCur].p);
-        utterance.lang = 'zh-CN';      // 普通話
-        utterance.rate = 0.75;         // 稍慢，讀得清楚啲
-        utterance.pitch = 1.05;        // 輕微提高音調
-        utterance.volume = 1;
+    let utterance = new SpeechSynthesisUtterance(rcQs[rcCur].p);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.75;
+    utterance.pitch = 1.05;
+    utterance.volume = 1;
     
-        utterance.onend = () => btn.classList.remove('playing');
-        utterance.onerror = () => {
-        btn.classList.remove('playing');
-        console.log("朗讀失敗，建議用手機測試");
-        };
+    utterance.onend = () => btn.classList.remove('playing');
+    utterance.onerror = () => btn.classList.remove('playing');
+    
+    synth.speak(utterance);
+}
 
-        synth.speak(utterance);
-            
-        function checkRCTone(t) {
-            let box=document.getElementById('rc-box'), car=document.getElementById('rc-car');
-            if(t===rcQs[rcCur].t) {
-                car.style.animation=`drive${t} 1.5s ease-in-out forwards`;
-                setTimeout(()=>{
-                    if(rcCur<rcQs.length-1){rcCur++; loadRC();}
-                    else showModal("完成！", "過山車之旅結束！", "🏆", "返回", ()=>resetGame('rollercoaster'));
-                }, 1600);
+function checkRCTone(t) {
+    let box = document.getElementById('rc-box');
+    let car = document.getElementById('rc-car');
+    
+    if (t === rcQs[rcCur].t) {
+        car.style.animation = `drive${t} 1.5s ease-in-out forwards`;
+        setTimeout(() => {
+            if (rcCur < rcQs.length - 1) {
+                rcCur++;
+                loadRC();
             } else {
-                box.style.animation='shake 0.4s'; setTimeout(()=>box.style.animation='', 400); playRCSound();
+                showModal("完成！", "過山車之旅結束！", "🏆", "返回", () => resetGame('rollercoaster'));
             }
-        }
+        }, 1600);
+    } else {
+        box.style.animation = 'shake 0.4s';
+        setTimeout(() => box.style.animation = '', 400);
+        playRCSound();
+    }
+}
     </script>
 </body>
 </html>
