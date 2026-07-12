@@ -5,6 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🇭🇰 香港小學官方部首魔法學堂</title>
     <style>
+        /* 🌟 新增：返回遊戲大廳按鈕樣式 */
+        .back-to-lobby {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ffffff;
+            color: #333333;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 4px 0 #cbd5e1, 0 4px 10px rgba(0,0,0,0.08);
+            border: 2px solid #cbd5e1;
+            transition: all 0.1s ease;
+            z-index: 9999;
+        }
+        .back-to-lobby:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #cbd5e1, 0 6px 12px rgba(0,0,0,0.12);
+        }
+        .back-to-lobby:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #cbd5e1, 0 2px 5px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 600px) {
+            .back-to-lobby {
+                top: 10px;
+                right: 10px;
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+
         body {
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
             background-color: #f0fdf4;
@@ -23,12 +57,13 @@
             border-radius: 30px;
             box-shadow: 0 12px 30px rgba(0,0,0,0.08);
             border: 6px solid #4ade80;
+            position: relative; /* 確保按鈕定位正常 */
         }
         h1 { color: #166534; font-size: 28px; text-align: center; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
         
         /* 區隔線 */
-        hr { border: 0; height: 2px; background: #e2e8f0; margin: 30px 0; }
+        hr { border: 0; height: 2px; background: #e2e8f0; margin: 20px 0; }
         
         /* 分頁標籤樣式 */
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
@@ -61,7 +96,7 @@
     </style>
 </head>
 <body>
-
+<a href="./index.html" class="back-to-lobby">🏠 返回遊戲大廳</a>
 <div class="container">
     <h1>🇭🇰 香港小學官方部首魔法學堂</h1>
     <p class="subtitle">根據香港教育局《香港小學學習字詞表》標準設計，專為雙語小學生打造</p>
