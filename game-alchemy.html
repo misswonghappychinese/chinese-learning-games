@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>漢字煉金術 - 部件合成大師</title>
     <style>
+        
+        body  
+        {
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #1a0b2e; /* 魔法深紫色背景 */
+            color: #fff;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+        h1 { color: #ce93d8; font-size: 1.8rem; margin-bottom: 10px; text-align: center; text-shadow: 0 0 10px #ab47bc; }
         /* 頂部返回大廳按鈕樣式 */
 .back-to-lobby {
     position: absolute;
@@ -42,23 +58,6 @@
         font-size: 0.85rem;
     }
 }
-        body 
-        <a href="./index.html" class="back-to-lobby">🏠 返回遊戲大廳</a>
-        {
-            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
-            background-color: #1a0b2e; /* 魔法深紫色背景 */
-            color: #fff;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            touch-action: manipulation;
-        }
-        h1 { color: #ce93d8; font-size: 1.8rem; margin-bottom: 10px; text-align: center; text-shadow: 0 0 10px #ab47bc; }
-        
         /* 老師設定畫面 */
         #setup-view {
             background: #2a1545;
@@ -243,6 +242,7 @@
 <body>
 
     <div id="setup-view">
+        <a href="./index.html" class="back-to-lobby">🏠 返回遊戲大廳</a>
         <h1>🧪 漢字煉金術生成器 🧪</h1>
         <div class="instruction">
             <strong>使用說明：</strong><br>
