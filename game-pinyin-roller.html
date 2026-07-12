@@ -233,7 +233,7 @@ mù , 4 , 木</textarea>
                 if (parts.length >= 2) {
                     questions.push({
                         pinyin: parts[0],
-                        tone: parseInt(parts[1])
+                        tone: parseInt(parts[1]),
                         word: parts[2] || parts[0] // 新增這行：讀取中文字，如果無提供則維持原狀
                     });
                 }
