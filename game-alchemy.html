@@ -3,10 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <a href="./index.html">🏠 返回遊戲大廳</a>
     <title>漢字煉金術 - 部件合成大師</title>
     <style>
-        body {
+        /* 頂部返回大廳按鈕樣式 */
+.back-to-lobby {
+    position: absolute;
+    top: 15px;
+    right: 15px; /* 放右上角，如果怕擋到分數也可以改為 left: 15px */
+    background: #ffffff;
+    color: #333333;
+    padding: 8px 16px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 4px 0 #cbd5e1, 0 4px 10px rgba(0,0,0,0.08);
+    border: 2px solid #cbd5e1;
+    transition: all 0.1s ease;
+    z-index: 9999; /* 確保按鈕永遠在最上層，不會被遊戲畫面遮住 */
+}
+
+.back-to-lobby:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #cbd5e1, 0 6px 12px rgba(0,0,0,0.12);
+}
+
+.back-to-lobby:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #cbd5e1, 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 手機版稍微縮小一點點，方便手指點擊 */
+@media (max-width: 600px) {
+    .back-to-lobby {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}
+        body 
+        <a href="./index.html" class="back-to-lobby">🏠 返回遊戲大廳</a>
+        {
             font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
             background-color: #1a0b2e; /* 魔法深紫色背景 */
             color: #fff;
