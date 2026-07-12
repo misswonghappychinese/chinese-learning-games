@@ -137,14 +137,14 @@
                 (系統內置了朗讀功能，會自動讀出您輸入的拼音)
             </div>
             <textarea id="game-input" rows="8">
-ā , 1
-á , 2
-ǎ , 3
-à , 4
-mā , 1
-bá , 2
-pǒ , 3
-mù , 4</textarea>
+ā , 1 , 阿
+á , 2 , 拔
+ǎ , 3 , 打
+à , 4 , 罵
+mā , 1 , 媽
+bá , 2 , 拔
+pǒ , 3 , 剖
+mù , 4 , 木</textarea>
             <button class="btn-blue" onclick="startGame()">✨ 開始過山車之旅！</button>
         </div>
 
@@ -234,6 +234,7 @@ mù , 4</textarea>
                     questions.push({
                         pinyin: parts[0],
                         tone: parseInt(parts[1])
+                        word: parts[2] || parts[0] // 新增這行：讀取中文字，如果無提供則維持原狀
                     });
                 }
             });
@@ -266,8 +267,8 @@ mù , 4</textarea>
             const btn = document.getElementById('audio-btn');
             btn.classList.add('playing');
             
-            // 設定語音，使用普通話 (zh-CN)
-            const utterThis = new SpeechSynthesisUtterance(currentPinyin);
+            // 將 currentPinyin 更改為 questions[currentIndex].word
+            const utterThis = new SpeechSynthesisUtterance(questions[currentIndex].word);
             utterThis.lang = 'zh-CN';
             utterThis.rate = 0.8; // 語速稍微放慢適合初學者
             
