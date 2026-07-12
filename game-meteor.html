@@ -108,23 +108,17 @@
         }
 
         /* 玩家砲台 */
-        #player {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            transform: translateX(-50%);
-            /* 將原本嘅 SVG 換成文字 Emoji */
-            content: '🚀';
-            font-size: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: none; /* 移除原本嘅 SVG 背景 */
-            transition: left 0.1s ease-out;
-            z-index: 5;
-        }
+   #player {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    width: 60px;
+    height: 65px;
+    transform: translateX(-50%);
+    background: url('fighter.png') no-repeat center/contain;
+    background-size: contain;
+    z-index: 5;
+}
 
         /* 隕石 */
         .meteor {
@@ -220,7 +214,7 @@
         </div>
 
         <div id="battle-field" onmousemove="movePlayer(event)" ontouchmove="movePlayerTouch(event)" onmousedown="startShooting()" onmouseup="stopShooting()" ontouchstart="startShootingTouch(event)" ontouchend="stopShooting()">
-            <div id="player">🚀</div>
+            <div id="player"></div>
             
             <div id="overlay">
                 <div class="overlay-box">
