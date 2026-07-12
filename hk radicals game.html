@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇭🇰 香港小學官方部首魔法學堂</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif;
+            background-color: #f0fdf4;
+            color: #2c3e50;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            border: 6px solid #4ade80;
+        }
+        h1 { color: #166534; font-size: 28px; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
+        
+        /* 區隔線 */
+        hr { border: 0; height: 2px; background: #e2e8f0; margin: 30px 0; }
+        
+        /* 分頁標籤樣式 */
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { padding: 10px 20px; background: #e2e8f0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .tab-btn.active { background: #4ade80; color: white; }
+        
+        /* 部首網格 */
+        .radical-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; background: #f8fafc; padding: 15px; border-radius: 15px; max-height: 200px; overflow-y: auto; }
+        .radical-grid.active { display: grid; }
+        .rad-item { background: white; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 22px; padding: 8px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .rad-item:hover { background: #bbf7d0; border-color: #4ade80; transform: scale(1.05); }
+
+        /* 魔法卡片顯示 */
+        .magic-card { background: #fef08a; border: 3px dashed #ca8a04; border-radius: 20px; padding: 20px; margin-top: 15px; text-align: center; min-height: 100px; }
+        .magic-title { font-size: 36px; margin: 0; }
+        .magic-details { font-size: 20px; font-weight: bold; color: #854d0e; margin: 10px 0; }
+        .magic-examples { font-size: 16px; color: #4b5563; }
+
+        /* 測試區域 */
+        .quiz-section { background: #eff6ff; border: 3px solid #3b82f6; border-radius: 20px; padding: 25px; }
+        .quiz-title { color: #1e40af; font-size: 22px; margin-top: 0; text-align: center; }
+        .score-board { text-align: center; font-size: 18px; font-weight: bold; color: #1d4ed8; margin-bottom: 15px; }
+        .question-box { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; border: 2px solid #bfdbfe; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .opt-btn { padding: 14px; background: white; border: 2px solid #93c5fd; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .opt-btn:hover { background: #dbeafe; }
+        .feedback { text-align: center; font-size: 22px; font-weight: bold; margin-top: 20px; min-height: 30px; }
+        .correct { color: #16a34a; }
+        .wrong { color: #dc2626; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🇭🇰 香港小學官方部首魔法學堂</h1>
+    <p class="subtitle">根據香港教育局《香港小學學習字詞表》標準設計，專為雙語小學生打造</p>
+
+    <!-- 第一部分：部首圖鑑 -->
+    <h2>🔍 第一步：探索部首圖鑑 (Explore Radicals)</h2>
+    <p style="font-size: 15px; color:#555;">點擊下方的部首，解鎖它的中文魔法家族與英文祕密！</p>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(1)">1-3 畫 (Stokes)</button>
+        <button class="tab-btn" onclick="switchTab(2)">4-6 畫 (Strokes)</button>
+        <button class="tab-btn" onclick="switchTab(3)">7 畫以上 (Strokes+)</button>
+    </div>
+
+    <!-- 1-3畫部首 -->
+    <div id="grid-1" class="radical-grid active"></div>
+    <!-- 4-6畫部首 -->
+    <div id="grid-2" class="radical-grid"></div>
+    <!-- 7畫以上部首 -->
+    <div id="grid-3" class="radical-grid"></div>
+
+    <!-- 魔法卡片展示區 -->
+    <div class="magic-card" id="magicCard">
+        <p class="magic-title">🔮</p>
+        <p class="magic-details">點擊上方任意部首，召喚魔法卡片！</p>
+        <p class="magic-examples">Click a radical above to see its magic!</p>
+    </div>
+
+    <hr>
+
+    <!-- 第二部分：互動測試 -->
+    <div class="quiz-section">
+        <h2 class="quiz-title">🎯 第二步：部首魔法挑戰賽 (Radical Quiz)</h2>
+        <div class="score-board">目前得分 (Score): <span id="scoreText">0</span> 分</div>
+        
+        <div class="question-box" id="qBox">問題載入中...</div>
+        <div class="options-grid" id="optGrid"></div>
+        <div class="feedback" id="feedbackBox"></div>
+    </div>
+</div>
+
+<script>
+    // 香港官方常用部首資料庫 (精選小一最核心官方部首)
+    const radicalDatabase = {
+        tab1: [
+            { char: "丨", name: "豎部", eng: "Vertical line", icon: "📏", words: "中、串" },
+            { char: "丶", name: "點部", eng: "Dot", icon: "💧", words: "丸、主" },
+            { char: "丿", name: "撇部", eng: "Slash", icon: "⚔️", words: "乖、乖" },
+            { char: "乙", name: "乙部", eng: "Second", icon: "🦢", words: "九、乞" },
+            { char: "人", name: "人部 (亻)", eng: "Human Family", icon: "👤", words: "仔、他、仙、你" },
+            { char: "八", name: "八部", eng: "Eight", icon: "8️⃣", words: "公、六、共" },
+            { char: "刀", name: "刀部 (刂)", eng: "Knife Family", icon: "🔪", words: "切、列、分、到" },
+            { char: "力", name: "力部", eng: "Power Family", icon: "💪", words: "加、功、助" },
+            { char: "口", name: "口部", eng: "Mouth/Speech Family", icon: "👄", words: "唱、吃、吹、叮" },
+            { char: "囗", name: "囗部", eng: "Enclosure/Box Family", icon: "📦", words: "園、國、圍、圈" },
+            { char: "土", name: "土部", eng: "Earth/Ground Family", icon: "🧱", words: "地、場、城、泥" },
+            { char: "大", name: "大部", eng: "Big Family", icon: "🦖", words: "天、太、夫" },
+            { char: "女", name: "女部", eng: "Female Family", icon: "👩", words: "媽、姐、妹、奶" },
+            { char: "子", name: "子部", eng: "Child Family", icon: "👶", words: "字、孩、學" },
+            { char: "宀", name: "宀部 (寶蓋頭)", eng: "Roof/House Family", icon: "🏠", words: "家、室、安、牢" },
+            { char: "山", name: "山部", eng: "Mountain Family", icon: "⛰️", words: "岩、嶺、峰" },
+            { char: "工", name: "工部", eng: "Work", icon: "🛠️", words: "左、巧" },
+            { char: "巾", name: "巾部", eng: "Towel/Cloth", icon: "🧣", words: "幫、常、帽" },
+            { char: "弓", name: "弓部", eng: "Bow Family", icon: "🏹", words: "張、彈、強" },
+            { char: "彡", name: "彡部", eng: "Feather/Pattern", icon: "🪶", words: "形、彩、彥" },
+            { char: "彳", name: "彳部 (雙人旁)", eng: "Step/Walking Family", icon: "🚶", words: "行、很、律、得" }
+        ],
+        tab2: [
+            { char: "心", name: "心部 (忄)", eng: "Feeling/Heart Family", icon: "❤️", words: "情、快、慢、怕" },
+            { char: "手", name: "手部 (扌)", eng: "Action/Hand Family", icon: "👋", words: "打、拍、拉、推" },
+            { char: "日", name: "日部", eng: "Sun/Time Family", icon: "☀️", words: "明、時、晴、晚" },
+            { char: "月", name: "月部", eng: "Moon/Body Family", icon: "🌙", words: "期、朗 (或身體：腳、肌)" },
+            { char: "木", name: "木部", eng: "Tree/Wood Family", icon: "🌳", words: "樹、校、椅、桌" },
+            { char: "水", name: "水部 (氵)", eng: "Water Family", icon: "💧", words: "海", words: "海、河、洗、游" },
+            { char: "火", name: "火部 (灬)", eng: "Fire Family", icon: "🔥", words: "燈、燒、熱、煮" },
+            { char: "犬", name: "犬部 (犭)", eng: "Animal Family", icon: "🐱", words: "貓", words: "狗、貓、獅、豬" },
+            { char: "玉", name: "玉部 (王)", eng: "Jade/Jewel Family", icon: "💎", words: "玩、班、球、現" },
+            { char: "田", name: "田部", eng: "Field Family", icon: "🌾", words: "男、界、留" },
+            { char: "目", name: "目部", eng: "Eye Family", icon: "👀", words: "看、眼、睛" },
+            { char: "示", name: "示部 (礻)", eng: "Blessing/God Family", icon: "🙏", words: "神、祝、福、禮" },
+            { char: "禾", name: "禾部", eng: "Grain/Crop Family", icon: "🌾", words: "秋、科、秒、秤" },
+            { char: "竹", name: "竹部 (⺮)", eng: "Bamboo Family", icon: "🎋", words: "筆、笑、笛、答" },
+            { char: "米", name: "米部", eng: "Rice Family", icon: "🍚", words: "粉、糖、粒" },
+            { char: "糸", name: "糸部 (糹)", eng: "Silk/Thread Family", icon: "🧵", words: "紅、綠、紙、線" },
+            { char: "肉", name: "肉部 (月字旁)", eng: "Meat/Body Family", icon: "🍗", words: "胖、肥、腳、臉" },
+            { char: "艸", name: "艸部 (艹)", eng: "Plant/Grass Family", icon: "🌱", words: "花、草、菜、藍" },
+            { char: "虫", name: "虫部", eng: "Insect/Bug Family", icon: "🐛", words: "蜂、蝶、蚊、蛋" },
+            { char: "衣", name: "衣部 (衤)", eng: "Clothes Family", icon: "👕", words: "衫、褲、袍、被" }
+        ],
+        tab3: [
+            { char: "言", name: "言部 (訁)", eng: "Speech/Word Family", icon: "💬", words: "說、話、請、讀" },
+            { char: "貝", name: "貝部", eng: "Money/Shell Family", icon: "💰", words: "買、賣、貴、寶" },
+            { char: "走", name: "走部", eng: "Run/Go Family", icon: "🏃", words: "起、越、趕" },
+            { char: "足", name: "足部", eng: "Foot/Kick Family", icon: "🦿", words: "跳、跑、路、跟" },
+            { char: "車", name: "車部", eng: "Vehicle Family", icon: "🚗", words: "輛、軟、輸" },
+            { char: "辵", name: "辵部 (辶)", eng: "Movement/Road Family", icon: "🛣️", words: "過、進、遠、迎" },
+            { char: "金", name: "金部 (釒)", eng: "Metal Family", icon: "🪙", words: "鐵、錯、鐘、錢" },
+            { char: "門", name: "門部", eng: "Door Family", icon: "🚪", words: "開、關、閃、間" },
+            { char: "雨", name: "雨部", eng: "Weather Family", icon: "🌧️", words: "雪", words: "雪、雷、電、雲" },
+            { char: "食", name: "食部 (飠)", eng: "Food Family", icon: "🍏", words: "飯、飲、飽、餅" },
+            { char: "馬", name: "馬部", eng: "Horse Family", icon: "🐴", words: "騎、驗、驚" },
+            { char: "魚", name: "魚部", eng: "Fish Family", icon: "🐟", words: "鮮、鯨、鯊" },
+            { char: "鳥", name: "鳥部", eng: "Bird Family", icon: "🐦", words: "鴨、雞、鳴" },
+            { char: "齒", name: "齒部", eng: "Tooth Family", icon: "🦷", words: "齡、齦" }
+        ]
+    };
+
+    // 測驗題目庫 (動態混合難度，小一友善)
+    const quizQuestions = [
+        { q: "「貓 (Cat)」和「狗 (Dog)」都是動物，牠們的官方部首是哪一個？", o: ["氵", "犭", "艹", "辶"], a: 1 },
+        { q: "部首「氵」魔法符號，代表跟什麼東西 (English word) 有關係？", o: ["Fire 🔥", "Tree 🌳", "Water 💧", "Money 💰"], a: 2 },
+        { q: "「說話 (Speaking)」和「朗讀 (Reading)」需要用到嘴巴和語言，牠們屬於哪一族？", o: ["訁(言部)", "釒(金部)", "𥘵(示部)", "衤(衣部)"], a: 0 },
+        { q: "媽媽 (Mother) 和姐姐 (Sister) 的中文名字裡，常看見哪一個部首？", o: ["土", "大", "女", "子"], a: 2 },
+        { q: "「花 (Flower)」和「草 (Grass)」的頭上，都有哪一個魔法帽子？", o: ["宀", "艹", "⺮", "雨"], a: 1 },
+        { q: "「跳舞 (Dancing)」和「跑步 (Running)」需要用到腳，牠們的部首是：", o: ["手", "口", "足", "車"], a: 2 },
+        { q: "如果天上下大雨、下雪 (Snowy)，這些字的頭上通常會有：", o: ["雨部", "竹部", "宀部", "日部"], a: 0 },
+        { q: "小明在學校「唱歌 (Singing)」和「吃東西 (Eating)」，這些動作的部首是：", o: ["手 (扌)", "心 (忄)", "口", "目"], a: 2 }
+    ];
+
+    let score = 0;
+    let currentQIdx = 0;
+
+    // 初始化：渲染全港官方部首
+    function initRadicalGallery() {
+        renderGrid('grid-1', radicalDatabase.tab1);
+        renderGrid('grid-2', radicalDatabase.tab2);
+        renderGrid('grid-3', radicalDatabase.tab3);
+    }
+
+    function renderGrid(gridId, data) {
+        const grid = document.getElementById(gridId);
+        data.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'rad-item';
+            btn.innerText = item.char;
+            btn.onclick = () => showMagicCard(item);
+            grid.appendChild(btn);
+        });
+    }
+
+    // 分頁切換
+    function switchTab(tabNum) {
+        document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+            btn.classList.toggle('active', idx === tabNum - 1);
+        });
+        document.querySelectorAll('.radical-grid').forEach((grid, idx) => {
+            grid.classList.toggle('active', idx === tabNum - 1);
+        });
+    }
+
+    // 展示部首魔法卡
+    function showMagicCard(item) {
+        const card = document.getElementById('magicCard');
+        card.innerHTML = `
+            <p class="magic-title">${item.icon} 【 ${item.char} 】</p>
+            <p class="magic-details">${item.name} = ${item.eng}</p>
+            <p class="magic-examples">🔊 香港官方小一常用字例：<b>${item.words}</b></p>
+        `;
+    }
+
+    // 載入測試題目
+    function loadQuestion() {
+        if (currentQIdx >= quizQuestions.length) {
+            // 答完全部題目，隨機洗牌重來
+            currentQIdx = 0;
+        }
+        
+        const qData = quizQuestions[currentQIdx];
+        document.getElementById('qBox').innerText = `💡 Q: ${qData.q}`;
+        document.getElementById('feedbackBox').innerText = "";
+        
+        const optGrid = document.getElementById('optGrid');
+        optGrid.innerHTML = "";
+        
+        qData.o.forEach((option, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(idx, qData.a);
+            optGrid.appendChild(btn);
+        });
+    }
+
+    // 檢查答案與即時反饋
+    function checkAnswer(userChoice, correctChoice) {
+        const feedback = document.getElementById('feedbackBox');
+        if (userChoice === correctChoice) {
+            score += 10;
+            document.getElementById('scoreText').innerText = score;
+            feedback.innerHTML = `<span class="correct">🎉 Excellent! 答對了！你太厲害了！</span>`;
+            // 鎖定按鈕防止重選
+            disableOptions();
+            setTimeout(() => {
+                currentQIdx++;
+                loadQuestion();
+            }, 2000);
+        } else {
+            feedback.innerHTML = `<span class="wrong">❌ Oops! 差一點點！再看一次圖鑑提示，再試一次！</span>`;
+        }
+    }
+
+    function disableOptions() {
+        document.querySelectorAll('.opt-btn').forEach(btn => btn.disabled = true);
+    }
+
+    // 啟動遊戲
+    window.onload = () => {
+        initRadicalGallery();
+        loadQuestion();
+    };
+</script>
+
+</body>
+</html>
