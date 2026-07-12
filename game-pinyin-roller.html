@@ -15,41 +15,9 @@
         
         body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: var(--bg-color); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden;}
         
-        header { background: linear-gradient(135deg, #42A5F5, #1E88E5); width: 100%; padding: 20px 0; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-bottom: 5px solid #FFCA28; position: relative; }
+        header { background: linear-gradient(135deg, #42A5F5, #1E88E5); width: 100%; padding: 20px 0; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-bottom: 5px solid #FFCA28; }
         h1 { margin: 0; font-size: 2.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 5px; font-weight: bold;}
-
-        /* 返回遊戲大廳按鈕樣式 */
-        .btn-lobby {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: #ffffff;
-            color: #1E88E5;
-            border: none;
-            padding: 8px 16px;
-            font-size: 1rem;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 0 #B0BEC5;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            transition: transform 0.1s;
-        }
-        .btn-lobby:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #B0BEC5;
-        }
-
-        @media (max-width: 600px) {
-            .btn-lobby {
-                position: static;
-                margin-top: 10px;
-                margin-bottom: 5px;
-            }
-        }
 
         .container { width: 95%; max-width: 800px; margin: 30px auto; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); padding: 25px; box-sizing: border-box; }
         
@@ -73,4 +41,270 @@
         .pinyin-display { font-size: 5rem; font-weight: bold; color: #2C3E50; margin: 10px 0; font-family: Arial, sans-serif;}
         
         .audio-btn { 
-            background: #FFCA28; border: none; border-radius: 50%; width: 60px; height
+            background: #FFCA28; border: none; border-radius: 50%; width: 60px; height: 60px; 
+            font-size: 2rem; cursor: pointer; box-shadow: 0 4px 0 #F57F17; transition: 0.1s;
+            display: flex; justify-content: center; align-items: center; margin: 0 auto;
+        }
+        .audio-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #F57F17; }
+        .audio-btn.playing { animation: pulse 1s infinite; }
+
+        /* 四聲調軌道按鈕 */
+        .tracks-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 500px; margin-bottom: 20px;}
+        .track-btn { 
+            border: none; border-radius: 15px; padding: 15px; cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; transition: 0.2s;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15); color: white; font-weight: bold;
+        }
+        .track-btn:active { transform: translateY(6px); box-shadow: 0 0 0 rgba(0,0,0,0); }
+        .track-icon { font-size: 2.5rem; margin-bottom: 5px; }
+        .track-name { font-size: 1.2rem; }
+        
+        .t1-btn { background-color: var(--t1); }
+        .t2-btn { background-color: var(--t2); color: #333;}
+        .t3-btn { background-color: var(--t3); }
+        .t4-btn { background-color: var(--t4); }
+
+        /* 動畫特效 */
+        .car-animation { position: absolute; font-size: 3rem; top: -20px; left: -50px; opacity: 0; pointer-events: none;}
+        
+        /* 不同的行車路徑動畫 */
+        @keyframes drive1 { 0% { left: -50px; top: 10px; opacity: 1; } 100% { left: 110%; top: 10px; opacity: 1; } }
+        @keyframes drive2 { 0% { left: -20px; top: 60px; opacity: 1; } 100% { left: 110%; top: -30px; opacity: 1; } }
+        @keyframes drive3 { 0% { left: 0px; top: -10px; opacity: 1; } 50% { left: 50%; top: 60px; opacity: 1;} 100% { left: 100%; top: -10px; opacity: 1; } }
+        @keyframes drive4 { 0% { left: 0px; top: -30px; opacity: 1; } 100% { left: 110%; top: 60px; opacity: 1; } }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-10px); } 50% { transform: translateX(10px); } }
+
+        /* 通用按鈕 */
+        .btn-blue { background: #1E88E5; color: white; border: none; padding: 12px 25px; font-size: 1.2rem; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #1565C0; margin-top: 10px;}
+        .btn-restart { background: #9E9E9E; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 0 #757575;}
+
+        /* Modal */
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px);}
+        .modal-content { background: white; padding: 40px; border-radius: 25px; text-align: center; max-width: 380px; }
+        .modal-icon { font-size: 4rem; margin-bottom: 10px; }
+        .modal-title { font-size: 1.8rem; color: #1E88E5; margin: 0 0 10px 0; }
+   /* 🌟 新增：返回遊戲大廳按鈕樣式 */
+        .back-to-lobby {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ffffff;
+            color: #333333;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 4px 0 #cbd5e1, 0 4px 10px rgba(0,0,0,0.08);
+            border: 2px solid #cbd5e1;
+            transition: all 0.1s ease;
+            z-index: 9999;
+        }
+        .back-to-lobby:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #cbd5e1, 0 6px 12px rgba(0,0,0,0.12);
+        }
+        .back-to-lobby:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #cbd5e1, 0 2px 5px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 600px) {
+            .back-to-lobby {
+                top: 10px;
+                right: 10px;
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<a href="./index.html" class="back-to-lobby">🏠 返回遊戲大廳</a>
+    <header>
+        <h1>🎢 拼音聲調過山車</h1>
+        <div class="subtitle">聽聲音，看形狀，選對過山車軌道！</div>
+    </header>
+
+    <div class="container">
+        <!-- ================= 教師出題區 ================= -->
+        <div id="setup" class="setup-box">
+            <h3>👨‍🏫 基礎單韻母/音節出題區</h3>
+            <div class="hint-block">
+                💡 <strong>零基礎建議：</strong>請先從最基礎的單韻母 (a, o, e, i, u, ü) 的四聲調開始教起。<br>
+                <strong>格式：</strong>拼音 , 聲調數字 (1代表平，2代表上，3代表落又上，4代表落)<br>
+                (系統內置了朗讀功能，會自動讀出您輸入的拼音)
+            </div>
+            <textarea id="game-input" rows="8">
+ā , 1
+á , 2
+ǎ , 3
+à , 4
+mā , 1
+bá , 2
+pǒ , 3
+mù , 4</textarea>
+            <button class="btn-blue" onclick="startGame()">✨ 開始過山車之旅！</button>
+        </div>
+
+        <!-- ================= 遊玩區 ================= -->
+        <div id="play" class="play-area">
+            <div class="level-info" id="level-display">第 1 題 / 共 8 題</div>
+            
+            <div class="magic-box" id="magic-box">
+                <div class="car-animation" id="car">🚗</div>
+                <button class="audio-btn" id="audio-btn" onclick="playSound()" title="點擊聆聽">🔊</button>
+                <div class="pinyin-display" id="pinyin-display">ā</div>
+                <p style="color: #78909C; margin:0;">請點擊喇叭聽聲音，然後選擇過山車的軌道！</p>
+            </div>
+
+            <div class="tracks-container">
+                <button class="track-btn t1-btn" onclick="checkTone(1)">
+                    <div class="track-icon">ˉ ➡️</div>
+                    <div class="track-name">第一聲 (平平車)</div>
+                </button>
+                <button class="track-btn t2-btn" onclick="checkTone(2)">
+                    <div class="track-icon">ˊ ↗️</div>
+                    <div class="track-name">第二聲 (上山車)</div>
+                </button>
+                <button class="track-btn t3-btn" onclick="checkTone(3)">
+                    <div class="track-icon">ˇ ↘️↗️</div>
+                    <div class="track-name">第三聲 (山谷車)</div>
+                </button>
+                <button class="track-btn t4-btn" onclick="checkTone(4)">
+                    <div class="track-icon">ˋ ↘️</div>
+                    <div class="track-name">第四聲 (下山車)</div>
+                </button>
+            </div>
+
+            <button class="btn-restart" onclick="resetGame()">🔙 返回設定</button>
+        </div>
+    </div>
+
+    <!-- 模態框 -->
+    <div id="modal">
+        <div class="modal-content">
+            <div id="modal-icon" class="modal-icon">🎉</div>
+            <h2 id="modal-title" class="modal-title">標題</h2>
+            <p id="modal-text" style="font-size: 1.2rem; color: #555; margin-bottom:20px;">提示文字</p>
+            <button class="btn-blue" id="modal-btn" onclick="closeModal()">繼續</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentIndex = 0;
+        let modalCallback = null;
+        let currentPinyin = "";
+        let currentTone = 0;
+
+        // Web Speech API (語音合成)
+        const synth = window.speechSynthesis;
+
+        function showModal(title, text, icon, btnText, callback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-btn').innerText = btnText || "繼續";
+            modalCallback = callback || null;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (modalCallback) modalCallback();
+        }
+
+        function resetGame() {
+            document.getElementById('setup').style.display = 'block';
+            document.getElementById('play').style.display = 'none';
+        }
+
+        function startGame() {
+            const raw = document.getElementById('game-input').value.trim();
+            if (!raw) return showModal("錯誤", "請輸入題目！", "⚠️", "明白");
+            
+            const lines = raw.split('\n');
+            questions = [];
+            
+            lines.forEach(line => {
+                const parts = line.split(',').map(s => s.trim());
+                if (parts.length >= 2) {
+                    questions.push({
+                        pinyin: parts[0],
+                        tone: parseInt(parts[1])
+                    });
+                }
+            });
+
+            if (questions.length === 0) return showModal("格式錯誤", "請確保格式為「拼音, 數字」。", "⚠️", "明白");
+
+            currentIndex = 0;
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('play').style.display = 'flex';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            document.getElementById('level-display').innerText = `第 ${currentIndex + 1} 題 / 共 ${questions.length} 題`;
+            currentPinyin = questions[currentIndex].pinyin;
+            currentTone = questions[currentIndex].tone;
+            
+            document.getElementById('pinyin-display').innerText = currentPinyin;
+            document.getElementById('car').style.animation = 'none'; // 重置動畫
+            
+            // 自動播放一次聲音
+            setTimeout(playSound, 500);
+        }
+
+        function playSound() {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            
+            const btn = document.getElementById('audio-btn');
+            btn.classList.add('playing');
+            
+            // 設定語音，使用普通話 (zh-CN)
+            const utterThis = new SpeechSynthesisUtterance(currentPinyin);
+            utterThis.lang = 'zh-CN';
+            utterThis.rate = 0.8; // 語速稍微放慢適合初學者
+            
+            utterThis.onend = function() {
+                btn.classList.remove('playing');
+            }
+            
+            synth.speak(utterThis);
+        }
+
+        function checkTone(selectedTone) {
+            const magicBox = document.getElementById('magic-box');
+            const car = document.getElementById('car');
+            
+            if (selectedTone === currentTone) {
+                // 播放過山車動畫
+                car.style.animation = `drive${currentTone} 1.5s ease-in-out forwards`;
+                
+                // 延遲顯示過關訊息，讓學生看完過山車動畫
+                setTimeout(() => {
+                    if (currentIndex < questions.length - 1) {
+                        currentIndex++;
+                        loadQuestion();
+                    } else {
+                        showModal("大功告成！", "你成功辨認了所有的聲調軌道，成為了拼音小車手！", "🏆", "太棒了！", () => resetGame());
+                    }
+                }, 1600);
+
+            } else {
+                // 答錯震動提示
+                magicBox.style.animation = 'shake 0.4s';
+                setTimeout(() => magicBox.style.animation = 'none', 400);
+                
+                // 再次播放聲音幫助他修正
+                playSound();
+            }
+        }
+    </script>
+</body>
+</html>
