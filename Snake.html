@@ -87,21 +87,31 @@
     <div id="view-menu" class="absolute inset-0 flex flex-col items-center justify-center bg-green-50 z-20">
         <div class="bg-white p-8 rounded-3xl shadow-xl text-center max-w-md w-full mx-4">
             <div class="text-5xl mb-4">🐍</div>
-            <h1 class="text-3xl font-black text-green-600 mb-2">重組句子貪食蛇</h1>
-            <p class="text-gray-500 mb-8 font-medium">自己思考句子順序，吃掉詞語，句子越長，速度越快！</p>
+            <h1 id="main-title" class="text-3xl font-black text-green-600 mb-2">重組句子貪食蛇</h1>
+            <p id="main-desc" class="text-gray-500 mb-8 font-medium">自己思考句子順序，吃掉詞語，句子越長，速度越快！</p>
             <button onclick="startGame()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl text-xl mb-4 shadow-lg transition-transform active:scale-95">開始遊戲</button>
-            <button onclick="showTeacherSetup()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-xl transition-transform active:scale-95">👨‍🏫 老師設定</button>
+            <button id="btn-teacher-setup" onclick="showTeacherSetup()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 rounded-xl transition-transform active:scale-95">👨‍🏫 老師設定</button>
         </div>
     </div>
 
     <div id="view-teacher" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-800 bg-opacity-50 z-30 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col h-[80vh]">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">📝 自訂重組句子</h2>
-            <p class="text-sm text-gray-500 mb-4">請輸入句子，每句一行。請用斜線 <b>/</b> 分開需要重組的詞語。（最多10關）</p>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg mx-4 flex flex-col h-[85vh]">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">📝 自訂重組句子</h2>
+            <p class="text-sm text-gray-500 mb-2">請輸入句子，每句一行。請用斜線 <b>/</b> 分開需要重組的詞語。（最多10關）</p>
             <textarea id="teacher-input" class="flex-1 w-full p-4 border-2 border-gray-200 rounded-xl mb-4 focus:outline-none focus:border-green-500 resize-none font-mono text-sm" spellcheck="false"></textarea>
+            
+            <!-- 新增：家課連結生成區 -->
+            <div class="bg-blue-50 p-3 rounded-xl mb-4 flex flex-col gap-2">
+                <p class="text-xs text-blue-700 font-bold">🔗 派發家課 (將題目變成專屬連結)</p>
+                <div class="flex gap-2">
+                    <input type="text" id="homework-link" readonly class="flex-1 text-xs p-2 rounded border border-blue-200 bg-white text-gray-500 focus:outline-none" placeholder="點擊生成連結...">
+                    <button onclick="generateHomeworkLink()" class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold px-3 py-2 rounded">生成並複製</button>
+                </div>
+            </div>
+
             <div class="flex gap-4">
-                <button onclick="saveTeacherSetup()" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl">儲存並返回</button>
-                <button onclick="cancelTeacherSetup()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl">取消</button>
+                <button onclick="saveTeacherSetup()" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl">儲存並試玩</button>
+                <button onclick="cancelTeacherSetup()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl">返回</button>
             </div>
         </div>
     </div>
@@ -157,16 +167,16 @@
     <script>
         // 加入咗長字詞，方便你直接測試多格碰撞
         const DEFAULT_SENTENCES = [
-            "我/今天/非常開心。",
-            "媽媽/去街市/買紅蘋果。",
-            "老師/在課室/教書。",
-            "哥哥/喜歡/踢足球。",
-            "妹妹/一邊唱歌，/一邊跳舞。",
-            "小明/把所有數學功課/做完了。",
-            "天上/有/很多星星。",
-            "公園裡/有/漂亮的花朵。",
-            "我們/一起/玩遊戲。",
-            "努力學習/才能/考取好成績。"
+            "我/今天/非常之超級開心",
+            "媽媽/去街市/買紅蘋果",
+            "老師/在課室/教書",
+            "哥哥/喜歡/踢足球",
+            "妹妹/一邊唱歌/一邊跳舞",
+            "小明/把所有數學功課/做完了",
+            "天上/有/很多星星",
+            "公園裡/有/漂亮的花朵",
+            "我們/一起/玩遊戲",
+            "努力學習/才能/考取好成績"
         ];
         
         let sentenceList = [...DEFAULT_SENTENCES];
@@ -197,6 +207,34 @@
         let nextDx = 1, nextDy = 0; 
         let wordsOnBoard = [];
         let particles = [];
+        let isHomeworkMode = false; // 新增：是否處於家課模式
+
+        // --- 初始化系統 (檢查網址參數) ---
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hwData = urlParams.get('hw');
+            
+            if (hwData) {
+                try {
+                    // 解碼 URL 中的 Base64 數據
+                    const decodedStr = decodeURIComponent(escape(atob(hwData)));
+                    const parsedSentences = JSON.parse(decodedStr);
+                    
+                    if (Array.isArray(parsedSentences) && parsedSentences.length > 0) {
+                        sentenceList = parsedSentences;
+                        isHomeworkMode = true;
+                        
+                        // UI 變更：隱藏老師按鈕，更改標題
+                        document.getElementById('btn-teacher-setup').style.display = 'none';
+                        document.getElementById('main-title').innerText = '📝 家課挑戰';
+                        document.getElementById('main-desc').innerText = '老師已經佈置好題目，請順序食掉詞語完成挑戰！';
+                    }
+                } catch (e) {
+                    console.error("家課連結解析失敗", e);
+                    alert("家課連結無效或已損壞，將載入預設題目。");
+                }
+            }
+        };
 
         let audioCtx;
         function initAudio() {
@@ -243,21 +281,72 @@
 
         function showTeacherSetup() {
             document.getElementById('teacher-input').value = sentenceList.join('\n');
+            document.getElementById('homework-link').value = ''; // 清空舊連結
             switchView('view-teacher');
         }
 
         function cancelTeacherSetup() { switchView('view-menu'); }
 
-        function saveTeacherSetup() {
+        function validateTeacherInput() {
             const rawText = document.getElementById('teacher-input').value;
             const newSentences = rawText.split('\n').map(s => s.trim()).filter(s => s.length > 0);
-            let valid = true;
-            for(let s of newSentences) {
-                if(!s.includes('/')) { alert('每句句子必須使用斜線 (/) 來分開詞語！\n例如：我/去/上學'); valid = false; break; }
+            
+            if(newSentences.length === 0) {
+                alert('請最少輸入一句句子！');
+                return null;
             }
-            if(valid) {
-                sentenceList = newSentences.length > 10 ? newSentences.slice(0, 10) : newSentences;
+            
+            for(let s of newSentences) {
+                if(!s.includes('/')) { 
+                    alert('每句句子必須使用斜線 (/) 來分開詞語！\n例如：我/去/上學'); 
+                    return null; 
+                }
+            }
+            return newSentences.length > 10 ? newSentences.slice(0, 10) : newSentences;
+        }
+
+        function saveTeacherSetup() {
+            const validatedSentences = validateTeacherInput();
+            if(validatedSentences) {
+                sentenceList = validatedSentences;
                 switchView('view-menu');
+            }
+        }
+
+        // --- 新增：生成家課連結編碼系統 ---
+        function generateHomeworkLink() {
+            const validatedSentences = validateTeacherInput();
+            if(!validatedSentences) return;
+
+            try {
+                // 將 Array 轉成 JSON string -> 轉成 UTF-8 Safe -> 轉成 Base64
+                const jsonStr = JSON.stringify(validatedSentences);
+                const encodedData = btoa(unescape(encodeURIComponent(jsonStr)));
+                
+                // 獲取當前網址 (去除任何舊的參數)
+                const baseUrl = window.location.href.split('?')[0];
+                const finalUrl = `${baseUrl}?hw=${encodedData}`;
+                
+                const linkInput = document.getElementById('homework-link');
+                linkInput.value = finalUrl;
+                
+                // 嘗試複製到剪貼簿 (考慮 iframe 及手機兼容性)
+                linkInput.select();
+                linkInput.setSelectionRange(0, 99999);
+                
+                try {
+                    document.execCommand('copy');
+                    alert("✅ 家課連結已成功複製！\n\n你可以將此連結發送給學生。學生點擊後將直接進入挑戰模式，無法修改題目。");
+                } catch (err) {
+                    alert("家課連結已生成！請手動複製上方框內的網址。");
+                }
+                
+                // 同時更新當前記憶體中的題目
+                sentenceList = validatedSentences;
+                
+            } catch (e) {
+                alert("生成連結時發生錯誤，請檢查輸入內容是否包含特殊無法識別的字符。");
+                console.error(e);
             }
         }
 
@@ -488,6 +577,12 @@
                 setTimeout(() => {
                     if (currentLevel >= sentenceList.length) {
                         isGameActive = false;
+                        
+                        // 家課模式爆機提示
+                        if (isHomeworkMode) {
+                            document.querySelector('#view-victory p').innerText = "你已完成老師佈置的所有任務！請截圖（Cap 圖）發送給老師作證明！📸";
+                        }
+                        
                         switchView('view-victory');
                     } else {
                         initLevel();
@@ -634,5 +729,3 @@
     </script>
 </body>
 </html>
-
-
